@@ -1,7 +1,7 @@
 const messageContainer = document.getElementById("chat");
 const chatBox = document.getElementById("input");
 const input = document.getElementById("message");
-const socket = io("http://localhost:3000");
+const socket = io("https://chat-server-b7qg.onrender.com");
 
 socket.on("connect", () => {
   messageContainer.innerHTML = "Te uniste al chat";
