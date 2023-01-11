@@ -3,6 +3,7 @@ const chatBox = document.getElementById("input");
 const input = document.getElementById("message");
 const socket = io("https://chat-server-b7qg.onrender.com");
 
+messageContainer.innerHTML = "Aguarda unos segundos mientras te conectas a la sala...";
 socket.on("connect", () => {
   messageContainer.innerHTML = "Te uniste al chat";
 });
