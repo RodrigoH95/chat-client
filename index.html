@@ -9,11 +9,19 @@
 </head>
 <body>
   <div id="main-container">
-    <div class="chat" id="chat"></div>
-    <form class="user-input" id="input">
-      <input type="text" id="message" autocomplete="off">
-      <button type="submit" class="btn-send">Enviar</button>
-    </form>
+    <div id="salas">
+      <div>
+        <h3>Salas</h3>
+        <div id="salas-list"></div>
+      </div>
+    </div>
+    <div id="chat-container">
+      <div class="chat" id="chat"></div>
+      <form class="user-input" id="input">
+        <input type="text" id="message" autocomplete="off">
+        <button type="submit" class="btn-send">Enviar</button>
+      </form>
+    </div>
   </div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.js"></script>
   <script src="script.js" type="module"></script>
