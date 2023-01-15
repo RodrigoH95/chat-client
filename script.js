@@ -3,7 +3,7 @@ const chatBox = document.getElementById("input");
 const input = document.getElementById("message");
 const salas = document.getElementById("salas-list")
 let url = null;
-const DEBUG = true;
+const DEBUG = false;
 
 
 if (DEBUG) {
