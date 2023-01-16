@@ -1,9 +1,10 @@
 const messageContainer = document.getElementById("chat");
 const chatBox = document.getElementById("input");
 const input = document.getElementById("message");
-const salas = document.getElementById("salas-list")
+const salas = document.getElementById("salas-list");
+const users = document.getElementById("users");
 let url = null;
-const DEBUG = false;
+const DEBUG = true;
 
 
 if (DEBUG) {
@@ -11,44 +12,54 @@ if (DEBUG) {
 } else {
   url = "https://chat-server-b7qg.onrender.com";
 }
+
 const socket = io(url);
 
 let nombre = "";
 
 messageContainer.innerHTML = "Aguarda unos segundos mientras te conectas a la sala...";
 
+const user = localStorage.getItem("user");
+if(user) {
+  nombre = user
+} else {
+  nombre = prompt("Tu nombre:");
+  localStorage.setItem("user", nombre);
+}
 socket.on("connect", () => {
   messageContainer.innerHTML = "Te uniste al chat";
-  nombre = prompt("Tu nombre:");
-  socket.emit("new-user", {name: nombre});
+  socket.emit("new-user");
 });
 
 socket.on("room-list", lista => {
   salas.innerHTML = "";
   lista.forEach(sala => {
-    let salaId = sala.split(":")[1];
-    let nombre = sala.split(":")[2];
-    return crearNuevaSala(salaId, nombre);
+    console.log(sala);
+    return crearNuevaSala(sala.id, sala.number);
   })
 })
 
-socket.on("user-join-room", (nombreDelCliente, nombreDelHost) => {
+socket.on("user-join-room", (socketID, roomName, playerName) => {
   let message = "";
-  if(nombre === nombreDelHost && nombreDelCliente === nombreDelHost) {
-    message = "<p>Te uniste a tu sala</p>";
-  } else if (nombreDelCliente === nombreDelHost) {
-    message = `<p>${nombreDelHost} se une a la sala</p>`
-  } else if (nombre === nombreDelHost) {
-    message = `<p>${nombreDelCliente} se une a tu sala</p>`
+  if(socketID === socket.id) {
+    message = `Te uniste`;
+  } else {
+    message = `${playerName} se une`;
   }
-  else {
-    message= `<p>${nombreDelCliente} se une a la sala de ${nombreDelHost}</p>`;
-  }
-  messageContainer.innerHTML += message
+  messageContainer.innerHTML += `<p>${message} a la sala ${roomName}</p>`;
+});
+
+socket.on("room-users", userList => {
+  users.innerHTML = "";
+  userList.forEach(user => crearNuevoUsuario(user));
 })
 
 socket.on("receive-message", message => {
  displayMessage(message, socket);
+})
+
+socket.on("room-full", () => {
+  messageContainer.innerHTML += `<p>La sala está llena</p>`;
 })
 
 socket.on("nueva-sala", (id) => {
@@ -65,14 +76,20 @@ chatBox.addEventListener("submit", e => {
   input.value = "";
 });
 
-function crearNuevaSala(id, nombre) {
-  console.log("Creando sala para:", id)
+function crearNuevaSala(id, roomName) {
   let sala = document.createElement("div");
   sala.classList.add("sala");
   sala.id = id;
-  sala.innerText = nombre;
-  sala.onclick = () => socket.emit("join-room", id);
+  sala.innerText = "Sala " + roomName;
+  sala.onclick = () => socket.emit("join-room", id, nombre);
   salas.appendChild(sala);
+}
+
+function crearNuevoUsuario(nombre) {
+  let usuario = document.createElement("div");
+  usuario.classList.add("usuario");
+  usuario.innerText = nombre;
+  users.appendChild(usuario);
 }
 
 function displayMessage(message, socket) {
