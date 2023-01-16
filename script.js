@@ -4,7 +4,7 @@ const input = document.getElementById("message");
 const salas = document.getElementById("salas-list");
 const users = document.getElementById("users");
 let url = null;
-const DEBUG = true;
+const DEBUG = false;
 
 
 if (DEBUG) {
