@@ -12,7 +12,8 @@
     <div id="menu-lateral">
         <div class="submenu salas-container">
           <h3>Salas</h3>
-          <div class="submenu-list" id="salas-list"></div>
+          <div class="submenu-list" id="salas-list">
+          </div>
         </div>
         <div class="submenu users-container">
           <h3>En la sala:</h3>
@@ -21,10 +22,11 @@
         </div>
     </div>
     <div id="chat-container">
+      <div class="current-room">Sala actual: <span id="room-name"></span></div>
       <div class="chat" id="chat"></div>
       <form class="user-input" id="input">
         <input type="text" id="message" autocomplete="off">
-        <button type="submit" class="btn-send">Enviar</button>
+        <button type="submit" class="btn">Enviar</button>
       </form>
     </div>
   </div>
