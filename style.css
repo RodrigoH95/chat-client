@@ -123,19 +123,20 @@ h3 {
 }
 
 .message {
-  border-radius: 15px;
   padding: 0.3rem 0.6rem;
   margin: 0.3rem;
   font-family: var(--ff-primary);
 }
 
 .sent {
+  border-radius: 15px 15px 15px 2px;
   align-self: flex-start;
   background-color: var(--color-secondary);
   color: var(--color-primary);
 }
 
 .received {
+  border-radius: 15px 2px 15px 15px;
   align-self: flex-end;
   background-color: var(--color-primary);
   border: 1px solid var(--color-secondary);
