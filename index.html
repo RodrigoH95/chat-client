@@ -9,7 +9,7 @@
 </head>
 <body>
   <div id="main-container">
-    <div id="menu-lateral">
+        <div id="menu-lateral">
         <div class="submenu salas-container">
           <h3>Salas</h3>
           <div class="submenu-list" id="salas-list">
@@ -22,7 +22,8 @@
         </div>
     </div>
     <div id="chat-container">
-      <div class="current-room">Sala actual: <span id="room-name"></span></div>
+    <div class="menu-toggle" id="menu-toggle">&#10151</div>
+      <div class="current-room">Sala: <span id="room-name"></span></div>
       <div class="chat" id="chat"></div>
       <form class="user-input" id="input">
         <input type="text" id="message" autocomplete="off">
@@ -31,6 +32,7 @@
     </div>
   </div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.js"></script>
+  <script src="hamburger.js"></script>
   <script src="script.js" type="module"></script>
 </body>
 </html>

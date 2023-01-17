@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Karla:wght@300&family=Lilita+One&family=Prompt:wght@300&family=Rowdies&display=swap');
+
 :root {
   --bg-color: #7fe2ade6;
   --bg-color-secondary: #cc89e4;
@@ -5,16 +7,20 @@
   --color-secondary: #ad55ae;
   --color-clear: #dabbda;
   --color-dark: #2c2828;
+  --ff-primary: 'Karla', sans-serif;
+  --ff-secondary: 'Prompt', sans-serif;
+  --ff-terciary: 'Rowdies', cursive;
 }
 
 body {
   background-color: var(--color-dark);
   color: var(--color-dark);
+  font-family: var(--ff-secondary);
 }
 
 p {
   margin: 0.2rem 0;
-  font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif
+  font-family: var(--ff-terciary);
 }
 
 #main-container {
@@ -27,6 +33,7 @@ p {
 }
 
 #menu-lateral {
+  position: relative;
   width: 200px;
   border: 2px solid black;
   background-color: var(--bg-color);
@@ -48,6 +55,7 @@ p {
   border-width: 1px 0 1px 0;
   background-color: var(--color-primary);
   text-align: center;
+  cursor: pointer;
 }
 
 .sala:hover {
@@ -118,7 +126,7 @@ h3 {
   border-radius: 15px;
   padding: 0.3rem 0.6rem;
   margin: 0.3rem;
-  font-family: cursive;
+  font-family: var(--ff-primary);
 }
 
 .sent {
@@ -198,13 +206,31 @@ h3 {
   cursor: pointer;
 }
 
+.menu-toggle {
+  background-color: var(--color-secondary);
+  color: var(--color-dark);
+  position: absolute;
+  text-align: center;
+  font-size: 1.5rem;
+  top: 50%;
+  left: -0.5rem;
+  transform: translateY(-50%);
+  cursor: pointer;
+  border: 1px solid black;
+  height: 30px;
+  width: 18px;
+  margin: 0;
+  padding: 0;
+  display: none;
+}
+
 @media screen and (max-width: 700px) {
   body {
     font-size: 14px;
   }
 
   #main-container {
-    margin: 0 0.5rem 2rem;
+    margin: 0 0.2rem 1rem;
   }
 
   #salas {
@@ -220,5 +246,29 @@ h3 {
   .message {
     margin: 0.2rem;
     padding: 0.2rem 0.4rem;
+  }
+
+  #menu-lateral {
+    width: 0;
+  }
+
+  #menu-lateral > * {
+    opacity: 0;
+  }
+
+  #menu-lateral.active {
+    width: 200px;
+    transition: width 0.4s ease-in-out;
+  }
+
+  #menu-lateral.active > * {
+    opacity: 1;
+    transition: opacity 0.8s ease-in;
+  }
+
+  .menu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 }
