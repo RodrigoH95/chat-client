@@ -5,7 +5,7 @@ const salas = document.getElementById("salas-list");
 const users = document.getElementById("users");
 const currentRoom = document.getElementById("room-name");
 let url = null;
-const DEBUG = true;
+const DEBUG = false;
 
 
 if (DEBUG) {
