@@ -45,7 +45,11 @@ function loadData() {
 
 socket.on("room-list", lista => {
   salas.innerHTML = "";
-  lista.forEach(sala => crearNuevaSala(sala.id, "Sala " + sala.number));
+  lista.forEach(sala => crearNuevaSala(sala.id, `Sala ${sala.number}`, sala.currentUsers, sala.capacity));
+});
+
+socket.on("room-updated", (roomID, data) => {
+  updateRoom(roomID, data);
 })
 
 socket.on("user-join-room", (socketID, roomName, playerName) => {
@@ -83,8 +87,7 @@ socket.on("room-users", (userList) => {
 
 socket.on("user-writing", usersWriting => {
   const str = usersWriting.filter(user => user.id !== socket.id).map(user => user.name).join(", ");
-  if(str === "") return usersWritingBox.innerText = "";
-  usersWritingBox.innerText = `${str} escribiendo...`;
+  showUserWriting(str);
 })
 
 socket.on("receive-message", message => {
@@ -92,6 +95,18 @@ socket.on("receive-message", message => {
  displayMessage(message, socket);
  addToHistory(socket, message);
 });
+
+function showUserWriting(str) {
+  if(str === "") return usersWritingBox.innerHTML = "";
+  usersWritingBox.innerHTML = "";
+  const users = document.createElement("span");
+  const dots = document.createElement("span");
+  dots.classList.add("dots");
+  users.innerText = `${str} escribiendo`;
+  usersWritingBox.appendChild(users);
+  usersWritingBox.appendChild(dots);
+
+}
 
 function addToHistory(socket, message) {
   const copy = {...message};
@@ -145,7 +160,7 @@ function infoMessage(message) {
   messageContainer.scrollTop = messageContainer.scrollHeight;
 }
 
-function crearNuevaSala(id, roomName) {
+function crearNuevaSala(id, roomName, currentUsers, capacity) {
   const sala = document.createElement("div");
   sala.classList.add("sala");
   sala.id = id;
@@ -156,6 +171,10 @@ function crearNuevaSala(id, roomName) {
     chatInput.value = "";
     estaEscribiendo = false;
   };
+  const connected = document.createElement("span");
+  connected.classList.add("connected");
+  connected.innerText = `(${currentUsers}/${capacity})`;
+  sala.appendChild(connected);
   salas.appendChild(sala);
 }
 
@@ -169,6 +188,12 @@ function loadCurrentRoom() {
 function setCurrentRoom(roomName) {
   userRoom = roomName;
   localStorage.setItem("currentRoom", userRoom);
+}
+
+function updateRoom(roomID, data) {
+  const room = document.getElementById(roomID);
+  const connected = room.querySelector(".connected");
+  connected.innerText = `(${data.currentUsers}/${data.capacity})`
 }
 
 function crearNuevoUsuario(nombre, isCurrentUser = false) {

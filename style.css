@@ -92,6 +92,58 @@ p {
   opacity: 0.75;
 }
 
+.dots {
+  position: relative;
+  margin-left: 8px;
+  display: inline-block;
+  width: 3px;
+  height: 3px;
+  border-radius: 3px;
+  background-color: var(--color-primary);
+  color: var(--color-primary);
+  animation: dot-flashing 1s infinite linear alternate;
+  animation-delay: 0.5s;
+}
+
+.dots::before, .dots::after {
+  content: "";
+  display: inline-block;
+  position: absolute;
+  top: 0;
+}
+
+.dots::before {
+  left: -5px;
+  width: 3px;
+  height: 3px;
+  border-radius: 3px;
+  background-color: var(--color-primary);
+  color: var(--color-primary);
+  animation: dot-flashing 1s infinite alternate;
+  animation-delay: 0s;
+}
+
+.dots::after {
+  left: 5px;
+  width: 3px;
+  height: 3px;
+  border-radius: 3px;
+  background-color: var(--color-primary);
+  color: var(--color-primary);
+  animation: dot-flashing 1s infinite alternate;
+  animation-delay: 1s;
+}
+
+@keyframes dot-flashing {
+  0% {
+    filter: brightness(140%);
+  }
+  50%, 100% {
+    filter: brightness(80%);
+    opacity: 0.8;
+  }
+}
+
 .current-room {
   border-top: 2px solid var(--color-dark);
   border-right: 2px solid var(--color-dark);
@@ -99,6 +151,10 @@ p {
   padding: 0 0.3rem;
   cursor: default;
   text-align: center;
+}
+
+.connected {
+  margin-left: 0.3rem;
 }
 
 #room-name {
@@ -259,6 +315,7 @@ h3 {
   width: 12px;
   display: none;
 }
+
 
 @media screen and (max-width: 700px) {
   body {
