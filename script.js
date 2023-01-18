@@ -5,7 +5,7 @@ const salas = document.getElementById("salas-list");
 const users = document.getElementById("users");
 const currentRoom = document.getElementById("room-name");
 let url = null;
-const DEBUG = false;
+const DEBUG = true;
 
 
 if (DEBUG) {
@@ -181,7 +181,7 @@ function cambiarNombre() {
   nombre = prompt("Tu nombre:");
   if(!nombre) nombre = "anonimo";
   localStorage.setItem("user", nombre);
-  const room = currentRoom.innerText;
+  const room = userRoom;
   socket.emit("user-change-name", room, nombre);
 }
 
