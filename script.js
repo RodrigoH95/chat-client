@@ -82,9 +82,7 @@ socket.on("room-users", (userList) => {
 });
 
 socket.on("user-writing", usersWriting => {
-  console.log("Llega info de usuarios escribiendo:", usersWriting);
   const str = usersWriting.filter(user => user.id !== socket.id).map(user => user.name).join(", ");
-  console.log("usuarios", str);
   if(str === "") return usersWritingBox.innerText = "";
   usersWritingBox.innerText = `${str} escribiendo...`;
 })
@@ -196,7 +194,6 @@ function cambiarNombre() {
 }
 
 function displayMessage(message, socket = null) {
-  console.log(message);
   const m = document.createElement("div");
 
   const senderInfo = document.createElement("div");
