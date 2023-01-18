@@ -81,6 +81,17 @@ p {
   font-weight: 700;
 }
 
+#users-writing {
+  position: absolute;
+  width: 100%;
+  bottom: 2.8rem;
+  padding: 0 0.2rem;
+  color: var(--color-primary);
+  font-weight: 900;
+  background-color: var(--color-dark);
+  opacity: 0.75;
+}
+
 .current-room {
   border-top: 2px solid var(--color-dark);
   border-right: 2px solid var(--color-dark);

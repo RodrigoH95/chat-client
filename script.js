@@ -4,6 +4,7 @@ const chatInput = document.getElementById("message");
 const salas = document.getElementById("salas-list");
 const users = document.getElementById("users");
 const currentRoom = document.getElementById("room-name");
+const usersWritingBox = document.getElementById("users-writing");
 let url = null;
 const DEBUG = false;
 
@@ -19,7 +20,7 @@ const socket = io(url);
 let nombre = "";
 let history = [];
 let userRoom = "Lobby";
-let hasInputChanged = false;
+let estaEscribiendo = false;
 
 infoMessage("Aguarda unos segundos mientras te conectas a la sala...");
 
@@ -78,6 +79,14 @@ socket.on("room-users", (userList) => {
     const name = user.id === socket.id ? user.name + " (yo)" : user.name;
     return crearNuevoUsuario(name, user.id === socket.id);
   });
+});
+
+socket.on("user-writing", usersWriting => {
+  console.log("Llega info de usuarios escribiendo:", usersWriting);
+  const str = usersWriting.filter(user => user.id !== socket.id).map(user => user.name).join(", ");
+  console.log("usuarios", str);
+  if(str === "") return usersWritingBox.innerText = "";
+  usersWritingBox.innerText = `${str} escribiendo...`;
 })
 
 socket.on("receive-message", message => {
@@ -115,18 +124,18 @@ chatBox.addEventListener("submit", e => {
   if(chatInput.value === "") return;
   socket.emit("send-message", {id: socket.id, sender: nombre, message: chatInput.value});
   chatInput.value = "";
-  hasInputChanged = false;
-  console.log("Deja de escribir");
+  estaEscribiendo = false;
+  socket.emit("user-stop-writing");
 });
 
 chatInput.addEventListener("input", e => {
-  if(chatInput.value !== "" && !hasInputChanged) {
-    console.log("comienza a escribir");
-    hasInputChanged = true;
+  if(chatInput.value !== "" && !estaEscribiendo) {
+    socket.emit("user-is-writing");
+    estaEscribiendo = true;
   };
   if(chatInput.value === "") {
-    console.log("Deja de escribir");
-    hasInputChanged = false;
+    socket.emit("user-stop-writing");
+    estaEscribiendo = false;
   }
 });
 
@@ -139,14 +148,15 @@ function infoMessage(message) {
 }
 
 function crearNuevaSala(id, roomName) {
-  let sala = document.createElement("div");
+  const sala = document.createElement("div");
   sala.classList.add("sala");
   sala.id = id;
   sala.innerText = roomName;
   sala.onclick = () => {
-    let name = roomName.split(" ")[1];
-    console.log("Usuario quiere unirse a Sala:", name);
+    const name = roomName.split(" ")[1];
     socket.emit("join-room", name, nombre)
+    chatInput.value = "";
+    estaEscribiendo = false;
   };
   salas.appendChild(sala);
 }
