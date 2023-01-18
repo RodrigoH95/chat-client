@@ -1,6 +1,6 @@
 const messageContainer = document.getElementById("chat");
 const chatBox = document.getElementById("input");
-const input = document.getElementById("message");
+const chatInput = document.getElementById("message");
 const salas = document.getElementById("salas-list");
 const users = document.getElementById("users");
 const currentRoom = document.getElementById("room-name");
@@ -18,7 +18,8 @@ const socket = io(url);
 
 let nombre = "";
 let history = [];
-let userRoom = "lobby";
+let userRoom = "Lobby";
+let hasInputChanged = false;
 
 infoMessage("Aguarda unos segundos mientras te conectas a la sala...");
 
@@ -30,12 +31,9 @@ if(user) {
 }
 
 socket.on("connect", () => {
-  infoMessage("Te uniste al chat");
   socket.emit("new-user");
-  crearNuevaSala("lobby", "Lobby");
   loadData();
-  socket.emit("join-room", userRoom, nombre);
-  
+  socket.emit("join-room", userRoom, nombre);  
 });
 
 function loadData() {
@@ -45,9 +43,7 @@ function loadData() {
 }
 
 socket.on("room-list", lista => {
-  const lobby = [...salas.childNodes].find(node => node.id === "lobby");
   salas.innerHTML = "";
-  salas.appendChild(lobby);
   lista.forEach(sala => crearNuevaSala(sala.id, "Sala " + sala.number));
 })
 
@@ -67,7 +63,9 @@ socket.on("user-join-room", (socketID, roomName, playerName) => {
       loadMessages(roomName);
     }
   }
+  
   infoMessage(`${message} a la sala ${roomName}`);
+  setCurrentRoom(roomName);
 });
 
 socket.on("user-leaves-room", userName => {
@@ -93,8 +91,11 @@ function addToHistory(socket, message) {
   if(copy.id === socket.id) {
     copy.sender = "Yo"
   }
-  history.filter(room => String(room.id) === currentRoom.innerText)[0].messages.push(copy);
-  window.localStorage.setItem("history", JSON.stringify(history));
+  const h = history.filter(room => String(room.id) === currentRoom.innerText)[0];
+  if(h) {
+    h.messages.push(copy);
+    window.localStorage.setItem("history", JSON.stringify(history));
+}
 }
 
 function loadMessages(roomID) {
@@ -103,21 +104,37 @@ function loadMessages(roomID) {
 
 socket.on("room-full", () => {
   infoMessage("La sala está llena");
-})
+});
 
 socket.on("room-not-found", () => {
   infoMessage("No se encontró la sala");
-})
+});
 
 chatBox.addEventListener("submit", e => {
   e.preventDefault();
-  if(input.value === "") return;
-  socket.emit("send-message", {id: socket.id, sender: nombre, message: input.value});
-  input.value = "";
+  if(chatInput.value === "") return;
+  socket.emit("send-message", {id: socket.id, sender: nombre, message: chatInput.value});
+  chatInput.value = "";
+  hasInputChanged = false;
+  console.log("Deja de escribir");
+});
+
+chatInput.addEventListener("input", e => {
+  if(chatInput.value !== "" && !hasInputChanged) {
+    console.log("comienza a escribir");
+    hasInputChanged = true;
+  };
+  if(chatInput.value === "") {
+    console.log("Deja de escribir");
+    hasInputChanged = false;
+  }
 });
 
 function infoMessage(message) {
-  messageContainer.innerHTML += `<p>${message}</p>`;
+  const elem = document.createElement("p");
+  elem.classList.add("info-message");
+  elem.innerText = message;
+  messageContainer.appendChild(elem);
   messageContainer.scrollTop = messageContainer.scrollHeight;
 }
 
@@ -127,8 +144,9 @@ function crearNuevaSala(id, roomName) {
   sala.id = id;
   sala.innerText = roomName;
   sala.onclick = () => {
-    setCurrentRoom(id);
-    socket.emit("join-room", id, nombre)
+    let name = roomName.split(" ")[1];
+    console.log("Usuario quiere unirse a Sala:", name);
+    socket.emit("join-room", name, nombre)
   };
   salas.appendChild(sala);
 }
@@ -140,8 +158,8 @@ function loadCurrentRoom() {
   }
 }
 
-function setCurrentRoom(id) {
-  userRoom = id;
+function setCurrentRoom(roomName) {
+  userRoom = roomName;
   localStorage.setItem("currentRoom", userRoom);
 }
 
@@ -168,6 +186,7 @@ function cambiarNombre() {
 }
 
 function displayMessage(message, socket = null) {
+  console.log(message);
   const m = document.createElement("div");
 
   const senderInfo = document.createElement("div");
