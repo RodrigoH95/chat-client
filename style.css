@@ -80,7 +80,6 @@ p {
   background-color: var(--color-dark);
   color: var(--color-primary);
   text-align: center;
-  font-weight: 700;
 }
 
 #users-writing {
@@ -304,6 +303,7 @@ h3 {
   background: none;
   border: none;
   cursor: pointer;
+  color: var(--color-primary);
 }
 
 .menu-toggle {
