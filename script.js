@@ -55,10 +55,10 @@ socket.on("room-updated", (roomID, data) => {
 socket.on("user-join-room", (socketID, roomName, playerName) => {
   let message = "";
   if(socketID === socket.id) {
-    message = "Te uniste";
+    infoMessage(`Te uniste a la sala ${roomName}`);
     currentRoom.innerText = roomName;
   } else {
-    message = `${playerName} se une`;
+    infoMessage(`${playerName} se une a la sala`)
   }
   if(socketID === socket.id) {
     if(history.findIndex(room => room.id === roomName) === -1) {
@@ -68,10 +68,12 @@ socket.on("user-join-room", (socketID, roomName, playerName) => {
       loadMessages(roomName);
     }
   }
-  
-  infoMessage(`${message} a la sala ${roomName}`);
   setCurrentRoom(roomName);
 });
+
+socket.on("user-already-in-room", () => {
+  infoMessage("Ya estás en la sala " + userRoom);
+})
 
 socket.on("user-leaves-room", userName => {
   infoMessage(`${userName} deja la sala`);
