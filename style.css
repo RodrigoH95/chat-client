@@ -149,7 +149,7 @@ p {
 .current-room {
   border-top: 2px solid var(--color-dark);
   border-right: 2px solid var(--color-dark);
-  background-color: var(--bg-color-secondary);
+  background-color: var(--color-clear);
   padding: 0 0.3rem;
   cursor: default;
   text-align: center;
@@ -267,13 +267,17 @@ h3 {
 
 #message {
   width: 100%;
-  background-color: var(--color-primary);
-  border: 2px solid var(--bg-color-secondary);
+  background-color: var(--bg-color-secondary);
+  border: 2px solid var(--color-dark);
+  font-weight: 900;
+  font-size: 0.9rem;
+  color: var(--color-primary);
 }
 
 #message:focus {
   outline: 2px solid var(--color-secondary);
-  transition: outline 0.2s;
+  background-color: var(--color-dark);
+  transition: outline 0.3s, background-color 0.3s;
 }
 
 .btn {
