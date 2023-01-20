@@ -5,7 +5,7 @@ const salas = document.getElementById("salas-list");
 const users = document.getElementById("users");
 const currentRoom = document.getElementById("room-name");
 const usersWritingBox = document.getElementById("users-writing");
-const socket = io("http://localhost:3000");
+const socket = io("https://chat-server-b7qg.onrender.com");
 //"https://chat-server-b7qg.onrender.com"
 
 let nombre = "";

@@ -8,13 +8,13 @@ const adversario = document.getElementById("adversario");
 const botonCortar = document.getElementById("btn-cortar");
 const puntaje1 = document.getElementById("puntaje1");
 const puntaje2 = document.getElementById("puntaje2");
-
-const DEBUG = true;
+const mensajes = document.getElementById("mensajes");
+const DEBUG = false;
 
 if(DEBUG) {
   url = "http://localhost:3000";
 } else {
-  url = "https://chinchon-server.onrender.com";
+  url = "https://chat-server-b7qg.onrender.com";
 }
 const socket = io(url);
 
@@ -84,6 +84,7 @@ socket.on("failed-load", () => {
 
 socket.on("nueva-partida", data => {
   console.log("data", data);
+  gameID = data.gameID;
   const myData = data.playersData.find(player => player.id === socket.id);
   const otherData = data.playersData.find(player => player.id !== socket.id);
   console.log("Datos recibidos", myData);
@@ -102,8 +103,29 @@ socket.on("nueva-partida", data => {
 
 socket.on("round-start", () => {
   limpiarTablero();
-  corta = false;
+  updateCurrentTurnData(false);
+  corta = setCortar(false);
   turno = null;
+});
+
+socket.on("round-end", (cartaFinal, data) => {
+  turno = false;
+  displayTurnoActual("---");
+  console.log("Finaliza ronda", cartaFinal, data);
+  const carta = generateCard(cartaFinal.valor, cartaFinal.palo, true);
+  carta.classList.add("corte");
+  descarte.appendChild(carta);
+  data.forEach(player => {
+    if(player.isPlayerOne === isPlayerOne) {
+      puntaje1.innerText = player.score;
+    } else {
+      puntaje2.innerText = player.score;
+      oponente.innerHTML = "";
+      for(const card of player.cards) {
+        oponente.appendChild(generateCard(card.valor, card.palo));
+      }
+    }
+  })
 })
 
 socket.on("nuevo-turno", bool => {
@@ -183,18 +205,6 @@ socket.on("no-cards", () => {
   }, 1000);
 });
 
-socket.on("finaliza-ronda", (puntajes) => {
-  console.log("Finaliza la ronda");
-  puntajes.forEach(puntaje => {
-    if(puntaje.id === socket.id) {
-      puntaje1.innerText = Number(puntaje1.innerText) + puntaje.puntaje;
-    } else {
-      puntaje2.innerText = Number(puntaje2.innerText) + puntaje.puntaje;
-    }
-  })
-  turno = false;
-})
-
 function createCardId() {
   const letters = "abcdefghijklmnopqrstuvwxyz";
   const numbers = "0123456789";
@@ -222,7 +232,6 @@ function generateCard(valor, palo, hidden = false) {
   card.id = createCardId();
   if (hidden) {
     card.classList.add("oponente");
-    if(corta) card.classList.add("corte");
     return card;
   }
   const simbolo = document.createElement("div");
@@ -271,13 +280,18 @@ jugador.addEventListener("touchmove", dragOver);
 // Recalcula la baraja del jugador cuando se mueven las cartas de lugar
 function recalculateDeck() {
   let newDeck = [];
-  Array.from(jugador.children).forEach(children => {
-    const id = children.id;
-    const index = getElementIndex(children);
+  Array.from(jugador.children).forEach(child => {
+    const id = child.id;
+    const index = getElementIndex(child);
     const card = mazo.find(card => card.id === id);
     newDeck[index] = card;
   })
+  if(JSON.stringify(mazo) === JSON.stringify(newDeck)) {
+    console.log("El mazo no cambió");
+    return;
+  }
   mazo = newDeck;
+  socket.emit("user-rearrange-deck", gameID, isPlayerOne, newDeck.map(card => ({valor: card.valor, palo: card.palo})));
 }
 
 function dragOver(e) {
@@ -318,13 +332,27 @@ function getCardFromElementId(id) {
   return mazo.find(card => card.id === id);
 }
 
-function descartar(carta) {
-  let c = getCardFromElementId(carta.id);
-  let i = mazo.indexOf(c);
-  console.log("elemento carta", c);
-  mazo.splice(i, 1);
-  descarte.appendChild(carta);
-  socket.emit("descarta", isPlayerOne, {valor: c.valor, palo: c.palo});
+function descartar(elem) {
+  const carta = getCardFromElementId(elem.id);
+  removerCartaDelMazo(carta);
+  descarte.appendChild(elem);
+  socket.emit("descarta", isPlayerOne, {valor: carta.valor, palo: carta.palo});
+}
+
+function usuarioCorta(elem) {
+  const carta = getCardFromElementId(elem.id);
+  console.log("Usuario intenta cortar con", carta.valor, "de", carta.palo);
+  if(carta.valor > 7) {
+    return displayMessage("No se puede cortar con una carta mayor a 7");
+  }
+  removerCartaDelMazo(carta);
+  socket.emit("usuario-corta", isPlayerOne, {valor: carta.valor, palo: carta.palo});
+  jugador.removeChild(elem);
+}
+
+function removerCartaDelMazo(carta) {
+  const index = mazo.indexOf(carta);
+  mazo.splice(index, 1);
 }
 
 function puedeDescartar() {
@@ -344,11 +372,23 @@ function getElementIndex(element) {
 }
 
 botonCortar.addEventListener("click", e => {
-  corta = true;
-})
+  setCortar(!corta);
+});
+
+function setCortar(bool) {
+  corta = bool;
+  corta ? displayMessage("Cortar activado") : displayMessage("");
+}
+
+function displayMessage(message) {
+  mensajes.innerText = message;
+}
 
 jugador.addEventListener("click", (e) => {
   if (e.target.classList.contains("carta") && puedeDescartar()) {
+    if(corta) {
+      return usuarioCorta(e.target);
+    };
     descartar(e.target);
     descartoCarta = true;
     if (finalizaTurno() && !corta) {

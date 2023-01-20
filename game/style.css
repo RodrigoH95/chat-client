@@ -106,6 +106,7 @@ th, td {
   height: 180px;
   border: 2px solid black;
   border-radius: 5px;
+  align-self: center;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -177,6 +178,15 @@ th, td {
   bottom: 0;
   right: 0;
   transform: scale(-1, -1)
+}
+
+#mensajes {
+  position: absolute;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.2rem;
+  font-weight: 900;
 }
 
 @media screen and (max-width: 700px) {
