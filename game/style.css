@@ -1,0 +1,254 @@
+@import url('https://fonts.googleapis.com/css2?family=Lilita+One&family=Rowdies&display=swap');
+
+body {
+  position: relative;
+  background-color:rgb(100, 74, 56);
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+  width: 80%;
+  margin: auto;
+}
+
+#interfaz {
+  font-family: 'Rowdies', cursive;
+  position: absolute;
+  align-self: center;
+  text-align: center;
+  padding: 1rem;
+  box-sizing: border-box;
+  top: 50%;
+  font-size: 1.5rem;
+  transform: translateY(-50%);
+}
+
+#turno {
+  font-family: 'Lilita One', cursive;
+  color:#2525c9;
+  font-weight: 900;
+}
+
+table, th, td {
+  border: 3px solid black;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 0.2rem;
+}
+
+#btn-cortar {
+  background-color:rgb(220, 188, 152);
+  padding: 0.2rem 0.5rem;
+  font-family: 'Rowdies', cursive;
+  font-size: 1.2em;
+  margin-top: 0.5em;
+  border: 2px solid rgb(100, 74, 56);
+  border-radius: 5px;
+}
+
+#btn-cortar:active {
+  background-color:rgb(100, 74, 56);
+}
+
+#tablero {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-image: url("./assets/img/table.jpg");
+  background-size: cover;
+  justify-content: space-between;
+}
+
+.player {
+  height: 30%;
+  display: flex;
+  justify-content: center;
+  margin-left: -3rem;
+}
+
+.player > .carta {
+  flex-shrink: 0;
+  margin-right: -3rem;
+}
+
+#mazo {
+  display:flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+/* #resto {
+  background-color: #b72929;
+  position: relative;
+  width: 130px;
+  height: 180px;
+  border: 2px solid black;
+  border-radius: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+} */
+
+#resto:hover {
+  filter:brightness(110%);
+}
+
+#descarte > .carta {
+  position: absolute;
+}
+
+.carta {
+  background-color: white;
+  position: relative;
+  width: 130px;
+  height: 180px;
+  border: 2px solid black;
+  border-radius: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.oponente {
+  background-image: url("./assets/img/backside.jpg");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+}
+
+.carta.oponente:hover {
+  filter: none;
+  transform: none;
+  z-index: initial;
+}
+
+.corte {
+  transform: rotate(-15deg);
+}
+
+.carta:hover {
+  z-index: 100;
+  transform: scale(110%);
+  filter:brightness(120%);
+}
+
+.carta:not(.oponente) {
+  outline: 1px solid black;
+  outline-offset: -7px;
+}
+
+.dragging {
+  opacity: 0.7;
+}
+
+.simbolo {
+  margin: 0.3rem;
+  text-align: center;
+  font-weight: 900;
+  font-size: 1.5rem;
+  user-select: none;
+}
+
+.carta > * {
+  pointer-events: none;
+}
+
+.palo {
+  width: 32px;
+  height: 32px;
+  image-rendering: optimizeQuality;
+}
+
+.valor {
+  width: 100%;
+  height: 100%;
+}
+
+.top-left {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.bottom-right {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  transform: scale(-1, -1)
+}
+
+@media screen and (max-width: 700px) {
+  body {
+    width: 100%;
+  }
+
+  #tablero {
+    justify-content: space-around;
+  }
+
+  #interfaz {
+    font-size: 14px;
+  }
+
+  .carta {
+    width: 65px;
+    height: 90px;
+  }
+
+  .palo {
+    width: 25px;
+    height: 25px;
+  }
+
+  .simbolo {
+    font-size: 0.8rem;
+  }
+
+  #resto {
+    width: 65px;
+    height: 90px;
+  }
+
+  .player {
+    margin-left: -2rem;
+  }
+
+  .player > .carta {
+    margin-right: -2rem;
+  }
+}
+
+@media screen and (max-width: 400px) {
+  #tablero {
+    justify-content: space-around;
+  }
+
+  .carta {
+    width: 50px;
+    height: 70px;
+  }
+
+  .palo {
+    width: 15px;
+    height: 15px;
+  }
+
+  .simbolo {
+    font-size: 0.8rem;
+  }
+
+  #resto {
+    width: 50px;
+    height: 70px;
+  }
+
+  .player {
+    margin-left: -2rem;
+  }
+
+  .player > .carta {
+    margin-right: -2rem;
+  }
+}

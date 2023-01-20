@@ -5,7 +5,8 @@ const salas = document.getElementById("salas-list");
 const users = document.getElementById("users");
 const currentRoom = document.getElementById("room-name");
 const usersWritingBox = document.getElementById("users-writing");
-const socket = io("https://chat-server-b7qg.onrender.com");
+const socket = io("http://localhost:3000");
+//"https://chat-server-b7qg.onrender.com"
 
 let nombre = "";
 let history = [];
@@ -98,6 +99,10 @@ socket.on("receive-message", (message) => {
   displayMessage(message, socket);
   addToHistory(socket, message);
 });
+
+socket.on("inicia-partida", () => {
+  location.href = "./game/index.html";
+})
 
 // La sala a la que intenta unirse el usuario está llena
 socket.on("room-full", () => infoMessage("La sala está llena"));
