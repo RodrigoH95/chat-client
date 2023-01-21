@@ -448,26 +448,33 @@ function updateCurrentTurnData(bool) {
 
 // Errores de servidor
 socket.on("toma-descarte-fail", () => {
-  console.log("Reintentando tomar descarte")
+  console.log("Reintentando tomar descarte...")
   socket.emit("toma-descarte", jugador.isPlayerOne);
 });
 
 socket.on("toma-carta-fail", () => {
-  console.log("Reintentando tomar carta")
+  console.log("Reintentando tomar carta...")
   socket.emit("toma-carta", jugador.isPlayerOne);
 });
 
 socket.on("finaliza-turno-fail", () => {
-  console.log("Reintentando finalizar turno")
+  const cartaSigueEnMazo = jugador.mazo.find(carta => JSON.stringify({valor: carta.valor, palo: carta.palo }) === JSON.stringify(jugador.ultimaCartaDescartada));
+  if(cartaSigueEnMazo) {
+    console.log(`Descarte ${jugador.ultimaCartaDescartada.valor} de ${jugador.ultimaCartaDescartada.palo} sigue en el mazo`);
+    const carta = jugadorElem.getElementById(cartaSigueEnMazo.id);
+    console.log("Volviendo a descartar...");
+    descartar(carta);
+  }
+  console.log("Reintentando finalizar turno...")
   socket.emit("finaliza-turno");
 });
 
 socket.on("usuario-corta-fail", () => {
-  console.log("Reintentando cortar")
+  console.log("Reintentando cortar...")
   socket.emit("usuario-corta", jugador.isPlayerOne, jugador.ultimaCartaDescartada);
 });
 
 socket.on("usuario-descarta-fail", () => {
-  console.log("Reintentando descartar")
+  console.log("Reintentando descartar...")
   socket.emit("descarta", jugador.isPlayerOne, jugador.ultimaCartaDescartada);
 });
