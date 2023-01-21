@@ -1,6 +1,6 @@
 const resto = document.getElementById("resto");
 const descarte = document.getElementById("descarte");
-const jugador = document.getElementById("jugador");
+const jugadorElem = document.getElementById("jugador");
 const oponente = document.getElementById("oponente");
 const local = document.getElementById("local");
 const turnoActual = document.getElementById("turno");
@@ -18,26 +18,39 @@ if(DEBUG) {
 }
 const socket = io(url);
 
-let mazo = [];
-let turno = null;
-let tomoCarta = null;
-let descartoCarta = null;
+class Jugador {
+  constructor(sala, gameID, nombre, isPlayerOne) {
+    this.mazo = [];
+    this.turno = null;
+    this.tomoCarta = null;
+    this.descartoCarta = null;
+    this.corta = false;
+    this.nombre = nombre;
+    this.sala = sala;
+    this.isPlayerOne = isPlayerOne;
+    this.gameID = gameID;
+    this.ultimaCartaRecibida = null;
+    this.ultimaCartaDescartada = null;
+  }
+}
+
 let nombreJugador2 = null;
-let corta = false;
 let nombreJugador1 = localStorage.getItem("user");
 const userRoom = localStorage.getItem("currentRoom");
-let isPlayerOne = JSON.parse(sessionStorage.getItem("isPlayerOne"));
 let gameID = sessionStorage.getItem("gameID");
+let isPlayerOne = JSON.parse(sessionStorage.getItem("isPlayerOne"));
 
+const jugador = new Jugador(userRoom, gameID, nombreJugador1, isPlayerOne);
 
 socket.on("connect", () => {
   //Cargar datos de localStorage nombreJugador1
-  console.log("user", nombreJugador1, "room", userRoom);
-  socket.emit("join-room", userRoom, nombreJugador1);
-  if(gameID && isPlayerOne !== null) {
+  console.log("user", jugador.nombre, "room", jugador.sala);
+  socket.emit("join-room", jugador.sala, jugador.nombre);
+  if(jugador.gameID && jugador.isPlayerOne !== null) {
     //usuario se reconecta
     //comprobar si la id del juego es la misma
-    return socket.emit("user-reconnect", gameID, socket.id, isPlayerOne);
+    console.log("Usuario reconecta con", jugador.gameID, socket.id, jugador.isPlayerOne);
+    return socket.emit("user-reconnect", jugador.gameID, socket.id, jugador.isPlayerOne);
     //enviar isPlayerOne para identificar al jugador
     //enviar socket.id para reemplazar al jugador
     //recibir el estado de la partida
@@ -48,17 +61,17 @@ socket.on("connect", () => {
 socket.on("load-match", data => {
   // Si llega a esta parte es porque cargó correctamente GameID, isPlayerOne y además hay una partida comenzada
   const matchData = JSON.parse(sessionStorage.getItem("matchData"));
-  const playerTwo = matchData.playersData.find(player => player.isPlayerOne !== isPlayerOne);
+  const playerTwo = matchData.playersData.find(player => player.isPlayerOne !== jugador.isPlayerOne);
   limpiarTablero();
   puntaje1.innerText = data.playerScore;
   puntaje2.innerText = data.opponentScore;
-  local.innerText = formatName(nombreJugador1);
+  local.innerText = formatName(jugador.nombre);
   nombreJugador2 = playerTwo.name;
   adversario.innerText = formatName(nombreJugador2);
   for(let card of data.mazo) {
     const c = generateCard(card.valor, card.palo, false);
-    mazo.push({ valor: card.valor, palo: card.palo, id: c.id });
-    jugador.appendChild(c);
+    jugador.mazo.push({ valor: card.valor, palo: card.palo, id: c.id });
+    jugadorElem.appendChild(c);
   }
   for(let card of data.mazoOponente) {
     const c = generateCard(card.valor, card.palo, true);
@@ -69,12 +82,11 @@ socket.on("load-match", data => {
     descarte.appendChild(c);
   }
 
-  if(!data.turno && isPlayerOne || data.turno && !isPlayerOne) {
+  if(!data.turno && jugador.isPlayerOne || data.turno && !jugador.isPlayerOne) {
     userTurn();
   } else {
     opponentTurn();
   }
-
 });
 
 socket.on("failed-load", () => {
@@ -85,39 +97,39 @@ socket.on("failed-load", () => {
 
 socket.on("nueva-partida", data => {
   console.log("data", data);
-  gameID = data.gameID;
+  jugador.gameID = data.gameID;
   const myData = data.playersData.find(player => player.id === socket.id);
   const otherData = data.playersData.find(player => player.id !== socket.id);
   console.log("Datos recibidos", myData);
   local.innerText = formatName(myData.name);
   nombreJugador2 = otherData.name;
   adversario.innerText = formatName(nombreJugador2);
-  isPlayerOne = myData.isPlayerOne;
-  console.log(isPlayerOne ? "Soy jugador 1" : "Soy jugador 2");
+  jugador.isPlayerOne = myData.isPlayerOne;
+  console.log(jugador.isPlayerOne ? "Soy jugador 1" : "Soy jugador 2");
   limpiarTablero();
   puntaje1.innerText = 0;
   puntaje2.innerText = 0;
   sessionStorage.setItem("matchData", JSON.stringify(data));
-  sessionStorage.setItem("isPlayerOne", isPlayerOne);
+  sessionStorage.setItem("isPlayerOne", jugador.isPlayerOne);
   sessionStorage.setItem("gameID", data.gameID);
 });
 
 socket.on("round-start", () => {
   limpiarTablero();
   updateCurrentTurnData(false);
-  corta = setCortar(false);
-  turno = null;
+  jugador.corta = setCortar(false);
+  jugador.turno = null;
 });
 
 socket.on("round-end", (cartaFinal, data) => {
-  turno = false;
+  jugador.turno = false;
   displayTurnoActual("---");
   console.log("Finaliza ronda", cartaFinal, data);
   const carta = generateCard(cartaFinal.valor, cartaFinal.palo, true);
   carta.classList.add("corte");
   descarte.appendChild(carta);
   data.forEach(player => {
-    if(player.isPlayerOne === isPlayerOne) {
+    if(player.isPlayerOne === jugador.isPlayerOne) {
       puntaje1.innerText = player.score;
     } else {
       puntaje2.innerText = player.score;
@@ -131,7 +143,7 @@ socket.on("round-end", (cartaFinal, data) => {
 
 socket.on("nuevo-turno", bool => {
   setCortar(false);
-  if((!bool && isPlayerOne) || (bool && !isPlayerOne)) {
+  if((!bool && jugador.isPlayerOne) || (bool && !jugador.isPlayerOne)) {
     userTurn()
   } else {
     opponentTurn();
@@ -139,50 +151,36 @@ socket.on("nuevo-turno", bool => {
 })
 
 function userTurn() {
-  turno = true;
-  tomoCarta = JSON.parse(sessionStorage.getItem("tomoCarta")) || false;
-  console.log("tomoCarta es", tomoCarta);
+  jugador.turno = true;
+  jugador.tomoCarta = JSON.parse(sessionStorage.getItem("tomoCarta")) || false;
+  console.log("tomoCarta es", jugador.tomoCarta);
   botonCortar.disabled = true;
-  descartoCarta = false;
-  displayTurnoActual(nombreJugador1);
+  jugador.descartoCarta = false;
+  displayTurnoActual(jugador.nombre);
 }
 
 function opponentTurn() {
-  turno = false;
+  jugador.turno = false;
   displayTurnoActual(nombreJugador2);
 }
 
 function displayTurnoActual(nombre) {
-  const color = nombre === nombreJugador1 ? "blue" : "red";
+  const color = nombre === jugador.nombre ? "blue" : "red";
   turnoActual.innerText = nombre;
   turnoActual.style.color = color;
 }
 
 socket.on("recibe-carta", ({receptor, card}) => {
-  const isUserCard = (!receptor && isPlayerOne) || (receptor && !isPlayerOne)
+  const isUserCard = (!receptor && jugador.isPlayerOne) || (receptor && !jugador.isPlayerOne)
   const carta = generateCard(card.valor, card.palo, !isUserCard);
   if(isUserCard) {
-    mazo.push({ valor: card.valor, palo: card.palo, id: carta.id});
-    jugador.appendChild(carta);
+    jugador.mazo.push({ valor: card.valor, palo: card.palo, id: carta.id});
+    jugadorElem.appendChild(carta);
+    setUltimaCartaRecibida(card);
   } else {
     oponente.appendChild(carta);
   }
 });
-
-// socket.on("oponente-recibe", ({ valor, palo }) => {
-//   oponente.appendChild(generateCard(valor, palo, true));
-// });
-
-// socket.on("descarta", ({ valor, palo }, index = -1, jugadorCorta) => {
-//   corta = jugadorCorta;
-//   const carta = generateCard(valor, palo, corta);
-//   carta.removeAttribute("draggable");
-//   descarte.appendChild(carta);
-//   if (index >= 0) {
-//     oponente.removeChild(oponente.childNodes[index]);
-//   }
-// });
-
 
 // Oponente descarta una carta
 socket.on("descarte", ({ valor, palo }, playerOne) =>  {
@@ -190,12 +188,11 @@ socket.on("descarte", ({ valor, palo }, playerOne) =>  {
   carta.removeAttribute("draggable");
   descarte.appendChild(carta);
   if(playerOne === null) return;
-  if(playerOne === !isPlayerOne) {
+  if(playerOne === !jugador.isPlayerOne) {
     oponente.removeChild(oponente.firstChild);
   } else {
-    descartoCarta = true;
-  }
-  
+    jugador.descartoCarta = true;
+  } 
 });
 
 socket.on("eliminar-descarte", () => {
@@ -228,9 +225,9 @@ function createCardId() {
 }
 
 function limpiarTablero() {
-  jugador.innerHTML = "";
+  jugadorElem.innerHTML = "";
   oponente.innerHTML = "";
-  mazo = [];
+  jugador.mazo = [];
   descarte.innerHTML = "";
 }
 
@@ -287,24 +284,24 @@ function generateCard(valor, palo, hidden = false) {
   return card;
 }
 
-jugador.addEventListener("dragover", dragOver);
-jugador.addEventListener("touchmove", dragOver);
+jugadorElem.addEventListener("dragover", dragOver);
+jugadorElem.addEventListener("touchmove", dragOver);
 
 // Recalcula la baraja del jugador cuando se mueven las cartas de lugar
 function recalculateDeck() {
   let newDeck = [];
-  Array.from(jugador.children).forEach(child => {
+  Array.from(jugadorElem.children).forEach(child => {
     const id = child.id;
     const index = getElementIndex(child);
-    const card = mazo.find(card => card.id === id);
+    const card = jugador.mazo.find(card => card.id === id);
     newDeck[index] = card;
   })
-  if(JSON.stringify(mazo) === JSON.stringify(newDeck)) {
+  if(JSON.stringify(jugador.mazo) === JSON.stringify(newDeck)) {
     console.log("El mazo no cambió");
     return;
   }
-  mazo = newDeck;
-  socket.timeout(2000).emit("user-rearrange-deck", gameID, isPlayerOne, newDeck.map(card => ({valor: card.valor, palo: card.palo})));
+  jugador.mazo = newDeck;
+  socket.timeout(2000).emit("user-rearrange-deck", jugador.gameID, jugador.isPlayerOne, newDeck.map(card => ({valor: card.valor, palo: card.palo})));
 }
 
 function dragOver(e) {
@@ -319,14 +316,14 @@ function dragOver(e) {
   const draggable = document.querySelector(".dragging");
 
   if (afterElement === null) {
-    jugador.appendChild(draggable);
+    jugadorElem.appendChild(draggable);
   } else {
-    jugador.insertBefore(draggable, afterElement);
+    jugadorElem.insertBefore(draggable, afterElement);
   }
 }
 
 function getDragAfterElement(x) {
-  const elements = [...jugador.querySelectorAll(".carta:not(.dragging)")];
+  const elements = [...jugadorElem.querySelectorAll(".carta:not(.dragging)")];
   return elements.reduce(
     (closest, child) => {
       const box = child.getBoundingClientRect();
@@ -342,14 +339,15 @@ function getDragAfterElement(x) {
 }
 
 function getCardFromElementId(id) {
-  return mazo.find(card => card.id === id);
+  return jugador.mazo.find(card => card.id === id);
 }
 
 async function descartar(elem) {
   const carta = getCardFromElementId(elem.id);
-  await socket.timeout(5000).emit("descarta", isPlayerOne, {valor: carta.valor, palo: carta.palo});
+  setUltimoDescarte(carta);
+  await socket.timeout(5000).emit("descarta", jugador.isPlayerOne, {valor: carta.valor, palo: carta.palo});
   removerCartaDelMazo(carta);
-  jugador.removeChild(elem);
+  jugadorElem.removeChild(elem);
 }
 
 function usuarioCorta(elem) {
@@ -359,57 +357,67 @@ function usuarioCorta(elem) {
     return // displayMessage("No se puede cortar con una carta mayor a 7");
   }
   removerCartaDelMazo(carta);
-  socket.timeout(5000).emit("usuario-corta", isPlayerOne, {valor: carta.valor, palo: carta.palo});
-  jugador.removeChild(elem);
+  setUltimoDescarte(carta);
+  socket.timeout(5000).emit("usuario-corta", jugador.isPlayerOne, {valor: carta.valor, palo: carta.palo});
+  jugadorElem.removeChild(elem);
+}
+
+function setUltimoDescarte(carta) {
+  jugador.ultimaCartaDescartada = { valor: carta.valor, palo: carta.palo };
+  console.log("Ultimo descarte", jugador.ultimaCartaDescartada);
+}
+
+function setUltimaCartaRecibida(carta) {
+  jugador.ultimaCartaRecibida = carta;
+  console.log("Ultima carta recibida:", jugador.ultimaCartaRecibida);
 }
 
 function removerCartaDelMazo(carta) {
-  const index = mazo.indexOf(carta);
-  mazo.splice(index, 1);
+  const index = jugador.mazo.indexOf(carta);
+  jugador.mazo.splice(index, 1);
 }
 
 function puedeDescartar() {
-  return mazo.length >= 7 && turno && tomoCarta;
+  return jugador.mazo.length >= 7 && jugador.turno && jugador.tomoCarta;
 }
 
 function puedeTomarCarta() {
-  return !tomoCarta && turno;
+  return !jugador.tomoCarta && jugador.turno;
 }
 
 function finalizaTurno() {
-  return tomoCarta && descartoCarta;
+  return jugador.tomoCarta && jugador.descartoCarta;
 }
 
 function getElementIndex(element) {
-  return Array.from(jugador.children).indexOf(element);
+  return Array.from(jugadorElem.children).indexOf(element);
 }
 
 botonCortar.addEventListener("click", e => {
-  setCortar(!corta);
+  setCortar(!jugador.corta);
 });
 
 function setCortar(bool) {
   if(puedeDescartar()) {
-    corta = bool; 
+    jugador.corta = bool; 
   } else {
     // displayMessage("No se puede cortar sin antes tomar una carta");
   }
   console.log("Se llama a setCortar");
-  corta ? displayMessage("Cortar activado") : displayMessage("");
+  jugador.corta ? displayMessage("Cortar activado") : displayMessage("");
 }
 
 function displayMessage(message) {
   mensajes.innerText = message;
 }
 
-jugador.addEventListener("click", (e) => {
+jugadorElem.addEventListener("click", (e) => {
   if (e.target.classList.contains("carta") && puedeDescartar()) {
-    if(corta) {
+    if(jugador.corta) {
       return usuarioCorta(e.target);
     };
     descartar(e.target);
-    turno = false;
-    setCortar(false);
+    jugador.turno = false;
     botonCortar.disabled = true;
     updateCurrentTurnData(false);
     socket.timeout(2000).emit("finaliza-turno");
@@ -418,7 +426,7 @@ jugador.addEventListener("click", (e) => {
 
 resto.addEventListener("click", (e) => {
   if (puedeTomarCarta()) {
-    socket.timeout(2000).emit("toma-carta", isPlayerOne);
+    socket.timeout(2000).emit("toma-carta", jugador.isPlayerOne);
     updateCurrentTurnData(true);
   } else {
     console.log("No puede tomar carta");
@@ -427,13 +435,39 @@ resto.addEventListener("click", (e) => {
 
 descarte.addEventListener("click", (e) => {
   if (puedeTomarCarta()) {
-    socket.timeout(2000).emit("toma-descarte", isPlayerOne);
+    socket.timeout(2000).emit("toma-descarte", jugador.isPlayerOne);
     updateCurrentTurnData(true);
   }
 });
 
 function updateCurrentTurnData(bool) {
-  tomoCarta = bool;
-  sessionStorage.setItem("tomoCarta", tomoCarta);
+  jugador.tomoCarta = bool;
+  sessionStorage.setItem("tomoCarta", jugador.tomoCarta);
   bool ? botonCortar.disabled = false : botonCortar.disabled = true;
 }
+
+// Errores de servidor
+socket.on("toma-descarte-fail", () => {
+  console.log("Reintentando tomar descarte")
+  socket.emit("toma-descarte", jugador.isPlayerOne);
+});
+
+socket.on("toma-carta-fail", () => {
+  console.log("Reintentando tomar carta")
+  socket.emit("toma-carta", jugador.isPlayerOne);
+});
+
+socket.on("finaliza-turno-fail", () => {
+  console.log("Reintentando finalizar turno")
+  socket.emit("finaliza-turno");
+});
+
+socket.on("usuario-corta-fail", () => {
+  console.log("Reintentando cortar")
+  socket.emit("usuario-corta", jugador.isPlayerOne, jugador.ultimaCartaDescartada);
+});
+
+socket.on("usuario-descarta-fail", () => {
+  console.log("Reintentando descartar")
+  socket.emit("descarta", jugador.isPlayerOne, jugador.ultimaCartaDescartada);
+});
