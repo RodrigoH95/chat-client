@@ -304,7 +304,7 @@ function recalculateDeck() {
     return;
   }
   mazo = newDeck;
-  socket.emit("user-rearrange-deck", gameID, isPlayerOne, newDeck.map(card => ({valor: card.valor, palo: card.palo})));
+  socket.timeout(2000).emit("user-rearrange-deck", gameID, isPlayerOne, newDeck.map(card => ({valor: card.valor, palo: card.palo})));
 }
 
 function dragOver(e) {
@@ -347,7 +347,7 @@ function getCardFromElementId(id) {
 
 async function descartar(elem) {
   const carta = getCardFromElementId(elem.id);
-  await socket.emit("descarta", isPlayerOne, {valor: carta.valor, palo: carta.palo});
+  await socket.timeout(5000).emit("descarta", isPlayerOne, {valor: carta.valor, palo: carta.palo});
   removerCartaDelMazo(carta);
   jugador.removeChild(elem);
 }
@@ -359,7 +359,7 @@ function usuarioCorta(elem) {
     return // displayMessage("No se puede cortar con una carta mayor a 7");
   }
   removerCartaDelMazo(carta);
-  socket.emit("usuario-corta", isPlayerOne, {valor: carta.valor, palo: carta.palo});
+  socket.timeout(5000).emit("usuario-corta", isPlayerOne, {valor: carta.valor, palo: carta.palo});
   jugador.removeChild(elem);
 }
 
@@ -412,13 +412,13 @@ jugador.addEventListener("click", (e) => {
     setCortar(false);
     botonCortar.disabled = true;
     updateCurrentTurnData(false);
-    socket.emit("finaliza-turno");
+    socket.timeout(2000).emit("finaliza-turno");
   }
 });
 
 resto.addEventListener("click", (e) => {
   if (puedeTomarCarta()) {
-    socket.emit("toma-carta", isPlayerOne);
+    socket.timeout(2000).emit("toma-carta", isPlayerOne);
     updateCurrentTurnData(true);
   } else {
     console.log("No puede tomar carta");
@@ -427,7 +427,7 @@ resto.addEventListener("click", (e) => {
 
 descarte.addEventListener("click", (e) => {
   if (puedeTomarCarta()) {
-    socket.emit("toma-descarte", isPlayerOne);
+    socket.timeout(2000).emit("toma-descarte", isPlayerOne);
     updateCurrentTurnData(true);
   }
 });
