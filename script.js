@@ -7,6 +7,7 @@ const currentRoom = document.getElementById("room-name");
 const usersWritingBox = document.getElementById("users-writing");
 const socket = io("https://chat-server-b7qg.onrender.com");
 //"https://chat-server-b7qg.onrender.com"
+//"http://localhost:3000"
 
 let nombre = "";
 let history = [];

@@ -14,9 +14,8 @@ body {
 #interfaz {
   font-family: 'Rowdies', cursive;
   position: absolute;
-  align-self: center;
-  text-align: center;
-  padding: 1rem;
+  padding: 0.4rem;
+  margin: 0.5rem;
   box-sizing: border-box;
   top: 50%;
   font-size: 1.5rem;
@@ -27,6 +26,10 @@ body {
   font-family: 'Lilita One', cursive;
   color:#2525c9;
   font-weight: 900;
+}
+
+table {
+  margin: 0.3rem auto;
 }
 
 table, th, td {
@@ -52,6 +55,10 @@ th, td {
   background-color:rgb(100, 74, 56);
 }
 
+#btn-cortar:disabled, #btn-cortar:disabled:active {
+  background-color:rgb(213, 202, 190);
+}
+
 #tablero {
   height: 100vh;
   display: flex;
@@ -59,6 +66,10 @@ th, td {
   background-image: url("./assets/img/table.jpg");
   background-size: cover;
   justify-content: space-between;
+}
+
+.jugadores {
+  text-align: center;
 }
 
 .player {
@@ -182,9 +193,10 @@ th, td {
 
 #mensajes {
   position: absolute;
-  bottom: 1rem;
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: 5vh;
+  width: 100%;
+  background-color: #ffffffa2;
+  text-align: center;
   font-size: 1.2rem;
   font-weight: 900;
 }

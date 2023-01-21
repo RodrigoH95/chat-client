@@ -50,10 +50,11 @@ socket.on("load-match", data => {
   const matchData = JSON.parse(sessionStorage.getItem("matchData"));
   const playerTwo = matchData.playersData.find(player => player.isPlayerOne !== isPlayerOne);
   limpiarTablero();
-
-  local.innerText = nombreJugador1;
+  puntaje1.innerText = data.playerScore;
+  puntaje2.innerText = data.opponentScore;
+  local.innerText = formatName(nombreJugador1);
   nombreJugador2 = playerTwo.name;
-  adversario.innerText = nombreJugador2;
+  adversario.innerText = formatName(nombreJugador2);
   for(let card of data.mazo) {
     const c = generateCard(card.valor, card.palo, false);
     mazo.push({ valor: card.valor, palo: card.palo, id: c.id });
@@ -88,9 +89,9 @@ socket.on("nueva-partida", data => {
   const myData = data.playersData.find(player => player.id === socket.id);
   const otherData = data.playersData.find(player => player.id !== socket.id);
   console.log("Datos recibidos", myData);
-  local.innerText = myData.name;
+  local.innerText = formatName(myData.name);
   nombreJugador2 = otherData.name;
-  adversario.innerText = nombreJugador2;
+  adversario.innerText = formatName(nombreJugador2);
   isPlayerOne = myData.isPlayerOne;
   console.log(isPlayerOne ? "Soy jugador 1" : "Soy jugador 2");
   limpiarTablero();
@@ -129,6 +130,7 @@ socket.on("round-end", (cartaFinal, data) => {
 })
 
 socket.on("nuevo-turno", bool => {
+  setCortar(false);
   if((!bool && isPlayerOne) || (bool && !isPlayerOne)) {
     userTurn()
   } else {
@@ -140,6 +142,7 @@ function userTurn() {
   turno = true;
   tomoCarta = JSON.parse(sessionStorage.getItem("tomoCarta")) || false;
   console.log("tomoCarta es", tomoCarta);
+  botonCortar.disabled = true;
   descartoCarta = false;
   displayTurnoActual(nombreJugador1);
 }
@@ -182,11 +185,17 @@ socket.on("recibe-carta", ({receptor, card}) => {
 
 
 // Oponente descarta una carta
-socket.on("descarte", ({ valor, palo }) =>  {
+socket.on("descarte", ({ valor, palo }, playerOne) =>  {
   const carta = generateCard(valor, palo, false);
   carta.removeAttribute("draggable");
   descarte.appendChild(carta);
-  oponente.removeChild(oponente.firstChild);
+  if(playerOne === null) return;
+  if(playerOne === !isPlayerOne) {
+    oponente.removeChild(oponente.firstChild);
+  } else {
+    descartoCarta = true;
+  }
+  
 });
 
 socket.on("eliminar-descarte", () => {
@@ -223,6 +232,10 @@ function limpiarTablero() {
   oponente.innerHTML = "";
   mazo = [];
   descarte.innerHTML = "";
+}
+
+function formatName(name) {
+  return name.substring(0, 3).toUpperCase()
 }
 
 function generateCard(valor, palo, hidden = false) {
@@ -332,18 +345,18 @@ function getCardFromElementId(id) {
   return mazo.find(card => card.id === id);
 }
 
-function descartar(elem) {
+async function descartar(elem) {
   const carta = getCardFromElementId(elem.id);
+  await socket.emit("descarta", isPlayerOne, {valor: carta.valor, palo: carta.palo});
   removerCartaDelMazo(carta);
-  descarte.appendChild(elem);
-  socket.emit("descarta", isPlayerOne, {valor: carta.valor, palo: carta.palo});
+  jugador.removeChild(elem);
 }
 
 function usuarioCorta(elem) {
   const carta = getCardFromElementId(elem.id);
   console.log("Usuario intenta cortar con", carta.valor, "de", carta.palo);
   if(carta.valor > 7) {
-    return displayMessage("No se puede cortar con una carta mayor a 7");
+    return // displayMessage("No se puede cortar con una carta mayor a 7");
   }
   removerCartaDelMazo(carta);
   socket.emit("usuario-corta", isPlayerOne, {valor: carta.valor, palo: carta.palo});
@@ -376,7 +389,12 @@ botonCortar.addEventListener("click", e => {
 });
 
 function setCortar(bool) {
-  corta = bool;
+  if(puedeDescartar()) {
+    corta = bool; 
+  } else {
+    // displayMessage("No se puede cortar sin antes tomar una carta");
+  }
+  console.log("Se llama a setCortar");
   corta ? displayMessage("Cortar activado") : displayMessage("");
 }
 
@@ -390,12 +408,11 @@ jugador.addEventListener("click", (e) => {
       return usuarioCorta(e.target);
     };
     descartar(e.target);
-    descartoCarta = true;
-    if (finalizaTurno() && !corta) {
-      turno = false;
-      updateCurrentTurnData(false);
-      socket.emit("finaliza-turno");
-    }
+    turno = false;
+    setCortar(false);
+    botonCortar.disabled = true;
+    updateCurrentTurnData(false);
+    socket.emit("finaliza-turno");
   }
 });
 
@@ -418,5 +435,5 @@ descarte.addEventListener("click", (e) => {
 function updateCurrentTurnData(bool) {
   tomoCarta = bool;
   sessionStorage.setItem("tomoCarta", tomoCarta);
-  if(bool) console.log("Jugador tomo carta");
+  bool ? botonCortar.disabled = false : botonCortar.disabled = true;
 }
