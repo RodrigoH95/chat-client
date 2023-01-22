@@ -49,11 +49,8 @@ socket.on("connect", () => {
   if(jugador.gameID && jugador.isPlayerOne !== null) {
     //usuario se reconecta
     //comprobar si la id del juego es la misma
-    console.log("Usuario reconecta con", jugador.gameID, socket.id, jugador.isPlayerOne);
     return socket.emit("user-reconnect", jugador.gameID, socket.id, jugador.isPlayerOne);
-    //enviar isPlayerOne para identificar al jugador
-    //enviar socket.id para reemplazar al jugador
-    //recibir el estado de la partida
+
   }
   socket.emit("player-ready");
 });
@@ -96,16 +93,13 @@ socket.on("failed-load", () => {
 }) 
 
 socket.on("nueva-partida", data => {
-  console.log("data", data);
   jugador.gameID = data.gameID;
   const myData = data.playersData.find(player => player.id === socket.id);
   const otherData = data.playersData.find(player => player.id !== socket.id);
-  console.log("Datos recibidos", myData);
   local.innerText = formatName(myData.name);
   nombreJugador2 = otherData.name;
   adversario.innerText = formatName(nombreJugador2);
   jugador.isPlayerOne = myData.isPlayerOne;
-  console.log(jugador.isPlayerOne ? "Soy jugador 1" : "Soy jugador 2");
   limpiarTablero();
   puntaje1.innerText = 0;
   puntaje2.innerText = 0;
@@ -124,7 +118,6 @@ socket.on("round-start", () => {
 socket.on("round-end", (cartaFinal, data) => {
   jugador.turno = false;
   displayTurnoActual("---");
-  console.log("Finaliza ronda", cartaFinal, data);
   const carta = generateCard(cartaFinal.valor, cartaFinal.palo, true);
   carta.classList.add("corte");
   descarte.appendChild(carta);
@@ -153,7 +146,6 @@ socket.on("nuevo-turno", bool => {
 function userTurn() {
   jugador.turno = true;
   jugador.tomoCarta = JSON.parse(sessionStorage.getItem("tomoCarta")) || false;
-  console.log("tomoCarta es", jugador.tomoCarta);
   botonCortar.disabled = true;
   jugador.descartoCarta = false;
   displayTurnoActual(jugador.nombre);
@@ -190,8 +182,12 @@ socket.on("descarte", ({ valor, palo }, playerOne) =>  {
   if(playerOne === null) return;
   if(playerOne === !jugador.isPlayerOne) {
     oponente.removeChild(oponente.firstChild);
-  } else {
+  } else if(playerOne === jugador.isPlayerOne) {
     jugador.descartoCarta = true;
+    const cartaJugador = jugador.mazo.find(carta => JSON.stringify({valor: carta.valor, palo: carta.palo}) === JSON.stringify({valor, palo}));
+    const cartaElem = document.getElementById(cartaJugador.id);
+    jugadorElem.removeChild(cartaElem);
+    jugador.mazo = jugador.mazo.filter(carta => JSON.stringify(carta) !== JSON.stringify(cartaJugador));
   } 
 });
 
@@ -297,7 +293,6 @@ function recalculateDeck() {
     newDeck[index] = card;
   })
   if(JSON.stringify(jugador.mazo) === JSON.stringify(newDeck)) {
-    console.log("El mazo no cambió");
     return;
   }
   jugador.mazo = newDeck;
@@ -346,13 +341,13 @@ async function descartar(elem) {
   const carta = getCardFromElementId(elem.id);
   setUltimoDescarte(carta);
   await socket.timeout(5000).emit("descarta", jugador.isPlayerOne, {valor: carta.valor, palo: carta.palo});
-  removerCartaDelMazo(carta);
-  jugadorElem.removeChild(elem);
+  // Ahora la carta se remueve al llegar la respuesta del servidor
+  // removerCartaDelMazo(carta);
+  // jugadorElem.removeChild(elem);
 }
 
 function usuarioCorta(elem) {
   const carta = getCardFromElementId(elem.id);
-  console.log("Usuario intenta cortar con", carta.valor, "de", carta.palo);
   if(carta.valor > 7) {
     return // displayMessage("No se puede cortar con una carta mayor a 7");
   }
@@ -369,7 +364,6 @@ function setUltimoDescarte(carta) {
 
 function setUltimaCartaRecibida(carta) {
   jugador.ultimaCartaRecibida = carta;
-  console.log("Ultima carta recibida:", jugador.ultimaCartaRecibida);
 }
 
 function removerCartaDelMazo(carta) {
@@ -378,11 +372,11 @@ function removerCartaDelMazo(carta) {
 }
 
 function puedeDescartar() {
-  return jugador.mazo.length >= 7 && jugador.turno && jugador.tomoCarta;
+  return jugador.mazo.length > 7 && jugador.turno && jugador.tomoCarta;
 }
 
 function puedeTomarCarta() {
-  return !jugador.tomoCarta && jugador.turno;
+  return (jugador.mazo.length < 8 || !jugador.tomoCarta) && jugador.turno;
 }
 
 function finalizaTurno() {
@@ -403,7 +397,6 @@ function setCortar(bool) {
   } else {
     // displayMessage("No se puede cortar sin antes tomar una carta");
   }
-  console.log("Se llama a setCortar");
   jugador.corta ? displayMessage("Cortar activado") : displayMessage("");
 }
 
@@ -458,16 +451,10 @@ socket.on("toma-carta-fail", () => {
 });
 
 socket.on("finaliza-turno-fail", () => {
+  // Al parecer el mazo y la ultima carta descartada son correctas. por algun motivo la carta vuelve al mazo luego de finalizar el turno
   console.log("Fin de turno falló");
   console.log("Ultimo descarte:", jugador.ultimaCartaDescartada);
   console.log("Mazo:", jugador.mazo);
-  const cartaSigueEnMazo = jugador.mazo.find(carta => JSON.stringify({valor: carta.valor, palo: carta.palo }) === JSON.stringify(jugador.ultimaCartaDescartada));
-  if(cartaSigueEnMazo) {
-    console.log(`Descarte ${jugador.ultimaCartaDescartada.valor} de ${jugador.ultimaCartaDescartada.palo} sigue en el mazo`);
-    const carta = jugadorElem.getElementById(cartaSigueEnMazo.id);
-    console.log("Volviendo a descartar...");
-    descartar(carta);
-  }
   console.log("Reintentando finalizar turno...")
   socket.emit("finaliza-turno");
 });
