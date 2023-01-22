@@ -118,9 +118,34 @@ socket.on("round-start", () => {
 socket.on("round-end", (cartaFinal, data) => {
   jugador.turno = false;
   displayTurnoActual("---");
+  mostrarDescarte(cartaFinal);
+  mostrarDatosDeRonda(data);
+});
+
+socket.on("game-end", (cartaFinal, data, winnerIsPlayerOne) => {
+ jugador.turno = false;
+ console.log("Finaliza la partida");
+ displayTurnoActual("FIN");
+ mostrarDescarte(cartaFinal);
+ mostrarDatosDeRonda(data);
+ console.log("Mostrando ganador...");
+ mostrarGanador(winnerIsPlayerOne);
+ console.log("Limpiando almacenamiento de sesion...");
+ sessionStorage.clear();
+ localStorage.setItem("currentRoom", "Lobby"); // TEMPORAL
+ console.log("Redirigiendo a Lobby en unos segundos...");
+ setTimeout(() => {
+  window.location.href = "../index.html";
+ }, 3500);
+});
+
+function mostrarDescarte(cartaFinal) {
   const carta = generateCard(cartaFinal.valor, cartaFinal.palo, true);
   carta.classList.add("corte");
   descarte.appendChild(carta);
+}
+
+function mostrarDatosDeRonda(data) {
   data.forEach(player => {
     if(player.isPlayerOne === jugador.isPlayerOne) {
       puntaje1.innerText = player.score;
@@ -132,7 +157,16 @@ socket.on("round-end", (cartaFinal, data) => {
       }
     }
   })
-})
+}
+
+function mostrarGanador(winnerIsPlayerOne) {
+  const playerWon = jugador.isPlayerOne === winnerIsPlayerOne;
+  const text = playerWon ? "GANASTE" : "PERDISTE";
+  const banner = document.createElement("div");
+  banner.classList.add("banner");
+  banner.innerText = text;
+  document.body.appendChild(banner);
+}
 
 socket.on("nuevo-turno", bool => {
   setCortar(false);
