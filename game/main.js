@@ -185,9 +185,11 @@ socket.on("descarte", ({ valor, palo }, playerOne) =>  {
   } else if(playerOne === jugador.isPlayerOne) {
     jugador.descartoCarta = true;
     const cartaJugador = jugador.mazo.find(carta => JSON.stringify({valor: carta.valor, palo: carta.palo}) === JSON.stringify({valor, palo}));
-    const cartaElem = document.getElementById(cartaJugador.id);
-    jugadorElem.removeChild(cartaElem);
-    jugador.mazo = jugador.mazo.filter(carta => JSON.stringify(carta) !== JSON.stringify(cartaJugador));
+    if(cartaJugador) {
+      const cartaElem = document.getElementById(cartaJugador.id);
+      if(cartaElem) jugadorElem.removeChild(cartaElem);
+      jugador.mazo = jugador.mazo.filter(carta => JSON.stringify(carta) !== JSON.stringify(cartaJugador));
+    }
   } 
 });
 
@@ -454,6 +456,11 @@ socket.on("finaliza-turno-fail", () => {
   // Al parecer el mazo y la ultima carta descartada son correctas. por algun motivo la carta vuelve al mazo luego de finalizar el turno
   console.log("Fin de turno falló");
   console.log("Ultimo descarte:", jugador.ultimaCartaDescartada);
+  const cartaSigueEnElMazo = this.jugador.mazo.find(carta => JSON.stringify({ valor: carta.valor, palo: carta.palo }) === JSON.stringify(jugador.ultimaCartaDescartada));
+  if(cartaSigueEnElMazo) {
+    console.log("Reenviando descarte...");
+    socket.emit("descarta", jugador.isPlayerOne, jugador.ultimaCartaDescartada);
+  }
   console.log("Mazo:", jugador.mazo);
   console.log("Reintentando finalizar turno...")
   socket.emit("finaliza-turno");
