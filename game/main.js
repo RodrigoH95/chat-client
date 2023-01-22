@@ -458,6 +458,9 @@ socket.on("toma-carta-fail", () => {
 });
 
 socket.on("finaliza-turno-fail", () => {
+  console.log("Fin de turno falló");
+  console.log("Ultimo descarte:", jugador.ultimaCartaDescartada);
+  console.log("Mazo:", jugador.mazo);
   const cartaSigueEnMazo = jugador.mazo.find(carta => JSON.stringify({valor: carta.valor, palo: carta.palo }) === JSON.stringify(jugador.ultimaCartaDescartada));
   if(cartaSigueEnMazo) {
     console.log(`Descarte ${jugador.ultimaCartaDescartada.valor} de ${jugador.ultimaCartaDescartada.palo} sigue en el mazo`);
