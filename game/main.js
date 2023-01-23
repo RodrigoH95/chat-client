@@ -90,7 +90,19 @@ socket.on("failed-load", () => {
   console.log("No se detectó partida guardada");
   sessionStorage.clear();
   socket.emit("player-ready");
-}) 
+});
+
+socket.on("jugador-desconectado", () => {
+  console.log("Se recibe señal para finalizar partida por jugador desconectado...");
+  jugador.turno = false;
+  displayTurnoActual("---");
+  mostrarBanner("UN JUGADOR SE DESCONECTÓ...")
+  sessionStorage.clear();
+  console.log("Volviendo a la sala en unos segundos...");
+  setTimeout(() => {
+   window.location.href = "../index.html";
+  }, 3500);
+})
 
 socket.on("nueva-partida", data => {
   jugador.gameID = data.gameID;
@@ -111,11 +123,13 @@ socket.on("nueva-partida", data => {
 socket.on("round-start", () => {
   limpiarTablero();
   updateCurrentTurnData(false);
+  botonCortar.disabled = true;
   jugador.corta = setCortar(false);
   jugador.turno = null;
 });
 
 socket.on("round-end", (cartaFinal, data) => {
+  setCortar(false);
   jugador.turno = false;
   displayTurnoActual("---");
   mostrarDescarte(cartaFinal);
@@ -129,7 +143,8 @@ socket.on("game-end", (cartaFinal, data, winnerIsPlayerOne) => {
  mostrarDescarte(cartaFinal);
  mostrarDatosDeRonda(data);
  console.log("Mostrando ganador...");
- mostrarGanador(winnerIsPlayerOne);
+ const mensaje = jugador.isPlayerOne === winnerIsPlayerOne ? "GANASTE" : "PERDISTE";
+ mostrarBanner(mensaje);
  console.log("Limpiando almacenamiento de sesion...");
  sessionStorage.clear();
  localStorage.setItem("currentRoom", "Lobby"); // TEMPORAL
@@ -159,17 +174,14 @@ function mostrarDatosDeRonda(data) {
   })
 }
 
-function mostrarGanador(winnerIsPlayerOne) {
-  const playerWon = jugador.isPlayerOne === winnerIsPlayerOne;
-  const text = playerWon ? "GANASTE" : "PERDISTE";
+function mostrarBanner(mensaje) {
   const banner = document.createElement("div");
   banner.classList.add("banner");
-  banner.innerText = text;
+  banner.innerText = mensaje;
   document.body.appendChild(banner);
 }
 
 socket.on("nuevo-turno", bool => {
-  setCortar(false);
   if((!bool && jugador.isPlayerOne) || (bool && !jugador.isPlayerOne)) {
     userTurn()
   } else {
@@ -377,9 +389,6 @@ async function descartar(elem) {
   const carta = getCardFromElementId(elem.id);
   setUltimoDescarte(carta);
   await socket.timeout(5000).emit("descarta", jugador.isPlayerOne, {valor: carta.valor, palo: carta.palo});
-  // Ahora la carta se remueve al llegar la respuesta del servidor
-  // removerCartaDelMazo(carta);
-  // jugadorElem.removeChild(elem);
 }
 
 function usuarioCorta(elem) {
@@ -395,7 +404,6 @@ function usuarioCorta(elem) {
 
 function setUltimoDescarte(carta) {
   jugador.ultimaCartaDescartada = { valor: carta.valor, palo: carta.palo };
-  console.log("Ultimo descarte", jugador.ultimaCartaDescartada);
 }
 
 function setUltimaCartaRecibida(carta) {
@@ -428,16 +436,13 @@ botonCortar.addEventListener("click", e => {
 });
 
 function setCortar(bool) {
-  if(puedeDescartar()) {
-    jugador.corta = bool; 
-  } else {
-    // displayMessage("No se puede cortar sin antes tomar una carta");
-  }
+  jugador.corta = bool;
   jugador.corta ? displayMessage("Cortar activado") : displayMessage("");
 }
 
 function displayMessage(message) {
   mensajes.innerText = message;
+  mensajes.style.display = mensajes.innerText ? "flex" : "none";
 }
 
 jugadorElem.addEventListener("click", (e) => {
@@ -487,7 +492,6 @@ socket.on("toma-carta-fail", () => {
 });
 
 socket.on("finaliza-turno-fail", () => {
-  // Al parecer el mazo y la ultima carta descartada son correctas. por algun motivo la carta vuelve al mazo luego de finalizar el turno
   console.log("Fin de turno falló");
   console.log("Ultimo descarte:", jugador.ultimaCartaDescartada);
   const cartaSigueEnElMazo = jugador.mazo.find(carta => JSON.stringify({ valor: carta.valor, palo: carta.palo }) === JSON.stringify(jugador.ultimaCartaDescartada));
@@ -495,7 +499,6 @@ socket.on("finaliza-turno-fail", () => {
     console.log("Reenviando descarte...");
     socket.emit("descarta", jugador.isPlayerOne, jugador.ultimaCartaDescartada);
   }
-  console.log("Mazo:", jugador.mazo);
   console.log("Reintentando finalizar turno...")
   socket.emit("finaliza-turno");
 });

@@ -80,15 +80,18 @@ th, td {
   flex-direction: column;
   background-image: url("./assets/img/table.jpg");
   background-size: cover;
-  justify-content: space-between;
+  justify-content: space-around;
 }
 
 .jugadores {
   text-align: center;
 }
 
+.player-container {
+  position: relative;
+}
+
 .player {
-  height: 30%;
   display: flex;
   justify-content: center;
   margin-left: -3rem;
@@ -208,9 +211,19 @@ th, td {
 
 #mensajes {
   position: absolute;
-  bottom: 5vh;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  top: 60%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 100;
   width: 100%;
-  background-color: #ffffffa2;
+  background: rgb(90, 90, 90);
+  background: linear-gradient(90deg, rgba(90, 90, 90, 0.6) 0%, rgba(90, 90, 90, 0.9) 49%, rgba(90, 90, 90, 0.6) 100%); 
+  color: white;
+  height: 3rem;
   text-align: center;
   font-size: 1.2rem;
   font-weight: 900;
@@ -221,12 +234,9 @@ th, td {
     width: 100%;
   }
 
-  #tablero {
-    justify-content: space-around;
-  }
-
   #interfaz {
-    font-size: 14px;
+    font-size: 13px;
+    margin: 0;
   }
 
   .carta {
@@ -259,12 +269,16 @@ th, td {
 
 @media screen and (max-width: 400px) {
   #tablero {
-    justify-content: space-around;
+    justify-content: space-between;
   }
 
   .carta {
     width: 50px;
     height: 70px;
+  }
+
+  .player {
+    height: auto;
   }
 
   .palo {

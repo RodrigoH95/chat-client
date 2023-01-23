@@ -101,6 +101,71 @@ socket.on("receive-message", (message) => {
   addToHistory(socket, message);
 });
 
+// Sala recibe peticion de partida
+socket.on("game-request", (socketID, playersData) => {
+  const playerName = playersData.find(player => player.id !== socket.id).name;
+  if(socketID === socket.id) {
+    showGameRequest({name: playerName, isSender: true});
+  } else {
+    showGameRequest({name: playerName, isSender: false});
+  }
+});
+
+function showGameRequest({ name, isSender }) {
+  if(document.getElementById("game-request")) {
+    console.log("Ya hay una petición en espera");
+    return;
+  }
+  const box = document.createElement("div");
+  box.classList.add("info-message");
+  box.id = "game-request";
+  const message = document.createElement("div");
+  message.classList.add("game-request-message");
+  // Falta texto del mensaje
+  const content = document.createElement("div");
+  content.classList.add("game-request-content");
+  content.id = "game-request-content";
+  if(isSender) {
+    message.innerText = `Invitaste a ${name} a jugar una partida de chinchon`;
+    content.innerHTML = `<span>Esperando respuesta</span><span class="dots"></span>`;
+  } else {
+    message.innerText = `${name} te invita a jugar una partida de chinchon`;
+    const botonAceptar = generateButton("Aceptar");
+    botonAceptar.onclick = () => socket.emit("game-accepted");
+    const botonRechazar = generateButton("Rechazar");
+    botonRechazar.onclick = () => socket.emit("game-rejected");
+    content.appendChild(botonAceptar);
+    content.appendChild(botonRechazar);
+      //Si la partida no se acepta en 8 segundos vence la petición
+    setTimeout(() => {
+      socket.emit("game-request-expired");
+    }, 15000);
+  }
+  box.appendChild(message);
+  box.appendChild(content);
+
+  messageContainer.appendChild(box);
+  messageContainer.scrollTop = messageContainer.scrollHeight;
+}
+
+function generateButton(mensaje) {
+  const button = document.createElement("button");
+  button.classList.add("btn");
+  button.innerText = mensaje;
+  return button;
+}
+
+socket.on("game-accepted", gameAccepted => {
+  const box = document.getElementById("game-request");
+  const elem = document.getElementById("game-request-content");
+  elem.innerText = gameAccepted ? "Partida aceptada! Aguarda unos segundos..." : "Partida rechazada...";
+  if(!gameAccepted) {
+    setTimeout(() => {
+      messageContainer.removeChild(box);
+    }, 2500);
+  }
+})
+
 socket.on("inicia-partida", () => {
   location.href = "./game/index.html";
 })
@@ -229,7 +294,6 @@ function cambiarNombre() {
 // Crea los mensajes de los usuarios
 function displayMessage(message, socket = null) {
   const m = document.createElement("div");
-
   const senderInfo = document.createElement("div");
   let sender;
   if (socket && socket.id === message.id) {
@@ -264,15 +328,30 @@ function displayMessage(message, socket = null) {
 chatBox.addEventListener("submit", (e) => {
   e.preventDefault();
   if (chatInput.value === "") return;
-  socket.emit("send-message", {
-    id: socket.id,
-    sender: nombre,
-    message: chatInput.value,
-  });
+  if (chatInput.value.match(/^!\w*/)) {
+    const comando = chatInput.value.split(" ")[0].substring(1).toLowerCase();
+    evaluarComando(comando);
+  } else {
+    socket.emit("send-message", {
+      id: socket.id,
+      sender: nombre,
+      message: chatInput.value,
+    });
+  }
   chatInput.value = "";
   estaEscribiendo = false;
   socket.emit("user-is-writing", estaEscribiendo);
 });
+
+function evaluarComando(comando) {
+  switch (comando) {
+    case "jugar":
+      socket.emit("user-send-game-request", nombre);
+      break;
+    default:
+      infoMessage(`'${comando}' no es un comando válido...`);
+  }
+}
 
 // Controla si el usuario está escribiendo o no
 chatInput.addEventListener("input", (e) => {

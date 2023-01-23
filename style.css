@@ -219,6 +219,17 @@ h3 {
   color: var(--color-clear);
 }
 
+.game-request-message {
+  font-weight: 700;
+}
+
+.game-request-content {
+  padding: 0.4rem;
+}
+
+.game-request-content > button {
+  margin: 0 0.5rem;
+}
 .received {
   border-radius: 15px 2px 15px 15px;
   align-self: flex-end;
