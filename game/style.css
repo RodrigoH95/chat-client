@@ -1,11 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Lilita+One&family=Rowdies&display=swap');
 
+
 body {
   position: relative;
   background-color:rgb(100, 74, 56);
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
   overflow: hidden;
   width: 80%;
   margin: auto;
@@ -29,6 +29,7 @@ body {
 #interfaz {
   font-family: 'Rowdies', cursive;
   position: absolute;
+  z-index: 15;
   padding: 0.4rem;
   margin: 0.5rem;
   box-sizing: border-box;
@@ -75,11 +76,11 @@ th, td {
 }
 
 #tablero {
-  height: 100vh;
   display: flex;
   flex-direction: column;
   background-image: url("./assets/img/table.jpg");
   background-size: cover;
+  box-sizing: border-box;
   justify-content: space-around;
 }
 
@@ -92,14 +93,20 @@ th, td {
 }
 
 .player {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit,  minmax(10px, max-content)) ;
+  width: 70%;
+  margin-left: auto;
+  margin-right: auto;
   justify-content: center;
-  margin-left: -3rem;
+  box-sizing: border-box;
+  z-index: 10;
+  /* margin-left: -3rem; */
 }
 
 .player > .carta {
-  flex-shrink: 0;
-  margin-right: -3rem;
+  /* margin-right: -3rem; */
+  margin-left: -1rem;
 }
 
 #mazo {
@@ -107,18 +114,6 @@ th, td {
   justify-content: center;
   gap: 1rem;
 }
-
-/* #resto {
-  background-color: #b72929;
-  position: relative;
-  width: 130px;
-  height: 180px;
-  border: 2px solid black;
-  border-radius: 5px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-} */
 
 #resto:hover {
   filter:brightness(110%);
@@ -209,6 +204,49 @@ th, td {
   transform: scale(-1, -1)
 }
 
+#btn-reacciones {
+  height: 32px;
+  width: 32px;
+  margin: auto;
+  background-image: url('./assets/img/mensaje.png');
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+.reacciones {
+  display: none;
+  position: absolute;
+  border: 1px solid black;
+  background-color: rgb(235, 235, 235);
+  padding: 0.1rem;
+  border-radius: 8px;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+  z-index: 9000;
+}
+
+.reaccion {
+  cursor: pointer;
+  font-size: 2rem;
+}
+
+.reaccion:hover {
+  filter: brightness(120%);
+}
+
+.user-reaccion {
+  position: absolute;
+  width: 100%;
+  text-align: center;
+  font-size: 3rem;
+  image-rendering: optimizeQuality;
+  z-index: 100;
+  pointer-events: none;
+}
+
+#jugador-reaccion {
+  top: -4.5rem;
+}
+
 #mensajes {
   position: absolute;
   display: none;
@@ -232,6 +270,10 @@ th, td {
 @media screen and (max-width: 700px) {
   body {
     width: 100%;
+  }
+
+  .reaccion {
+    font-size: 1.5rem;
   }
 
   #interfaz {
@@ -258,13 +300,13 @@ th, td {
     height: 90px;
   }
 
-  .player {
+  /* .player {
     margin-left: -2rem;
   }
 
   .player > .carta {
     margin-right: -2rem;
-  }
+  } */
 }
 
 @media screen and (max-width: 400px) {
@@ -295,11 +337,11 @@ th, td {
     height: 70px;
   }
 
-  .player {
+  /* .player {
     margin-left: -2rem;
   }
 
   .player > .carta {
     margin-right: -2rem;
-  }
+  } */
 }

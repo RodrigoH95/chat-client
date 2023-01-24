@@ -9,14 +9,37 @@ const botonCortar = document.getElementById("btn-cortar");
 const puntaje1 = document.getElementById("puntaje1");
 const puntaje2 = document.getElementById("puntaje2");
 const mensajes = document.getElementById("mensajes");
+const btnReacciones = document.getElementById("btn-reacciones");
+const reacciones = document.getElementById("reacciones");
+const jugadorReaccion = document.getElementById("jugador-reaccion");
+const oponenteReaccion = document.getElementById("oponente-reaccion");
+
 const DEBUG = false;
+
+const tablero = document.getElementById("tablero");
+tablero.style.minHeight = window.innerHeight + 'px';
+
+window.onresize = () => {
+  tablero.style.minHeight = window.innerHeight + 'px'
+};
 
 if(DEBUG) {
   url = "http://localhost:3000";
 } else {
   url = "https://chat-server-b7qg.onrender.com";
 }
-const socket = io(url);
+const socket = io("http://192.168.0.211:3000");
+
+console.log("Preloading images...");
+const images = {}
+const palos = ["basto", "copas", "oro", "espadas", "comodin"];
+palos.forEach(palo => images[palo] = preloadImage(palo));
+
+function preloadImage(palo) {
+  const img = new Image();
+  img.src = `./assets/img/${palo}.png`;
+  return img;
+}
 
 class Jugador {
   constructor(sala, gameID, nombre, isPlayerOne) {
@@ -293,8 +316,9 @@ function generateCard(valor, palo, hidden = false) {
   simbolo.innerHTML = valor;
   const imgCont = document.createElement("div");
   imgCont.classList.add("palo");
-  const img = document.createElement("img");
-  img.src = `./assets/img/${palo}.png`;
+  const img = images[palo].cloneNode(true);
+  // const img = document.createElement("img"); // Ahora las imagenes se precargan al inicio del juego
+  // img.src = `./assets/img/${palo}.png`;
   img.classList.add("valor");
   imgCont.appendChild(img);
   simbolo.appendChild(imgCont);
@@ -512,3 +536,39 @@ socket.on("usuario-descarta-fail", () => {
   console.log("Reintentando descartar...")
   socket.emit("descarta", jugador.isPlayerOne, jugador.ultimaCartaDescartada);
 });
+
+// REACCIONES
+btnReacciones.addEventListener("click", () => {
+  const display = reacciones.style.display;
+  reacciones.style.display = display === "grid" ? "none" : "grid";
+});
+
+reacciones.addEventListener("click", e => {
+  emitirReaccion(e.target.id, jugador.isPlayerOne);
+  reacciones.style.display = "none";
+});
+
+function emitirReaccion(reaccionID, isPlayerOne) {
+  socket.emit("reaccion", reaccionID, isPlayerOne);
+}
+
+socket.on("reaccion", (reaccionID, isPlayerOne) => {  
+  if(jugador.isPlayerOne === isPlayerOne) {
+    console.log("usuario");
+    changeReaction(true, reaccionID);
+  } else {
+    console.log("oponente");
+    changeReaction(false, reaccionID);
+  }
+});
+
+function changeReaction(isUser, reaccionID) {
+  const emoji = "&#x" + reaccionID;
+  const user = isUser ? jugadorReaccion : oponenteReaccion;
+  user.innerHTML = emoji;
+  setTimeout(() => {
+    if(user.innerHTML && user.innerHTML.codePointAt(0).toString(16).toUpperCase() === reaccionID) {
+      user.innerHTML = "";
+    }
+  }, 2500);
+}

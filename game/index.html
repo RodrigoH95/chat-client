@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, user-scalable=0">
   <link rel="stylesheet" href="style.css">
   <title>Carta</title>
 </head>
@@ -13,8 +13,8 @@
     <div class="jugadores">
       <table>
         <tr>
-          <th id="local">Jugador 1</th>
-          <th id="adversario">Jugador 2</th>
+          <th id="local">---</th>
+          <th id="adversario">---</th>
         </tr>
         <tr>
           <td class="puntaje" id="puntaje1">0</td>
@@ -22,16 +22,56 @@
         </tr>
       </table>
       <button type="button" id="btn-cortar">Cortar</button>
+      <div class="btn-reacciones" id="btn-reacciones"></div>
+      <div class="reacciones" id="reacciones">
+        <div class="reaccion" id="1F602">&#x1F602</div>
+        <div class="reaccion" id="1F608">&#x1F608</div>
+        <div class="reaccion" id="1F60E">&#x1F60E</div>
+        <div class="reaccion" id="1F610">&#x1F610</div>
+        <div class="reaccion" id="1F61C">&#x1F61C</div>
+        <div class="reaccion" id="1F621">&#x1F621</div>
+        <div class="reaccion" id="1F62D">&#x1F62D</div>
+        <div class="reaccion" id="1F631">&#x1F631</div>
+        <div class="reaccion" id="1F62E">&#x1F62E</div>
+        <div class="reaccion" id="1F634">&#x1F634</div>
+        <div class="reaccion" id="1F440">&#x1F440</div>
+        <div class="reaccion" id="1F914">&#x1F914</div>
+        <div class="reaccion" id="1F921">&#x1F921</div>
+        <div class="reaccion" id="1F92B">&#x1F92B</div>
+        <div class="reaccion" id="1F928">&#x1F928</div>
+      </div>
     </div>
   </div>
   <div id="tablero">
-    <div class="player" id="oponente"></div>
+    <div id="oponente-container">
+      <div class="player" id="oponente">
+        <div class="carta oponente"></div>
+        <div class="carta oponente"></div>
+        <div class="carta oponente"></div>
+        <div class="carta oponente"></div>
+        <div class="carta oponente"></div>
+        <div class="carta oponente"></div>
+        <div class="carta oponente"></div>
+      </div>
+      <div class="user-reaccion" id="oponente-reaccion"></div>
+    </div>
     <div id="mazo">
       <div id="resto" class="carta oponente"></div>
-      <div id="descarte"></div>
+      <div id="descarte">
+        <div class="carta oponente"></div>
+      </div>
     </div>
     <div class="player-container">
-      <div class="player" id="jugador"></div>
+      <div class="user-reaccion" id="jugador-reaccion"></div>
+      <div class="player" id="jugador">
+        <div class="carta"></div>
+        <div class="carta"></div>
+        <div class="carta"></div>
+        <div class="carta"></div>
+        <div class="carta"></div>
+        <div class="carta"></div>
+        <div class="carta"></div>
+      </div>
       <div id="mensajes"></div>
     </div>
   </div>
