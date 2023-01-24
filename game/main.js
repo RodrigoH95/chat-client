@@ -28,7 +28,7 @@ if(DEBUG) {
 } else {
   url = "https://chat-server-b7qg.onrender.com";
 }
-const socket = io("http://192.168.0.211:3000");
+const socket = io(url);
 
 console.log("Preloading images...");
 const images = {}
