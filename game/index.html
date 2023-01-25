@@ -9,18 +9,28 @@
 </head>
 <body>
   <div id="interfaz">
-    <div class="turno">Turno: <span id="turno">...</span></div>
     <div class="jugadores">
-      <table>
-        <tr>
-          <th id="local">---</th>
-          <th id="adversario">---</th>
-        </tr>
-        <tr>
-          <td class="puntaje" id="puntaje1">0</td>
-          <td class="puntaje" id="puntaje2">0</td>
-        </tr>
-      </table>
+      <div class="turno">Turno: <span id="turno">...</span></div>
+      <div class="info">
+        <div class="info-ventana">
+        <div class="info-btn" id="info-btn">&#x1F50D</div>
+          <div class="info-turno" id="info-turno">
+            <table>
+              <tr>
+                <th id="local">---</th>
+                <th id="adversario">---</th>
+              </tr>
+              <tr>
+                <td class="puntaje" id="puntaje1">0</td>
+                <td class="puntaje" id="puntaje2">0</td>
+              </tr>
+            </table>
+          </div>
+          <div class="info-resumen" id="info-resumen">
+            Resumen de la ronda:
+          </div>
+        </div>
+      </div>
       <button type="button" id="btn-cortar">Cortar</button>
       <div class="btn-reacciones" id="btn-reacciones"></div>
       <div class="reacciones" id="reacciones">

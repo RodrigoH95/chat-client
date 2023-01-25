@@ -13,6 +13,9 @@ const btnReacciones = document.getElementById("btn-reacciones");
 const reacciones = document.getElementById("reacciones");
 const jugadorReaccion = document.getElementById("jugador-reaccion");
 const oponenteReaccion = document.getElementById("oponente-reaccion");
+const infoBtn = document.getElementById("info-btn");
+const infoTurno = document.getElementById("info-turno");
+const infoResumen = document.getElementById("info-resumen");
 
 const DEBUG = false;
 
@@ -151,12 +154,14 @@ socket.on("round-start", () => {
   jugador.turno = null;
 });
 
-socket.on("round-end", (cartaFinal, data) => {
+socket.on("round-end", (cartaFinal, data, resumen) => {
   setCortar(false);
   jugador.turno = false;
   displayTurnoActual("---");
   mostrarDescarte(cartaFinal);
   mostrarDatosDeRonda(data);
+  console.log("Llega resumen", resumen);
+  infoResumen.innerText = "Resumen de la ronda:\n" + resumen;
 });
 
 socket.on("game-end", (cartaFinal, data, winnerIsPlayerOne) => {
@@ -176,6 +181,43 @@ socket.on("game-end", (cartaFinal, data, winnerIsPlayerOne) => {
   window.location.href = "../index.html";
  }, 3500);
 });
+
+socket.on("jugador-cede-cartas", (cartasCedidas, players) => {
+  const isUser = cartasCedidas.isPlayerOne === jugador.isPlayerOne;
+  const jugador1 = players.find(player => player.isPlayerOne === jugador.isPlayerOne);
+  const jugador2 = players.find(player => player.isPlayerOne !== jugador.isPlayerOne);
+  let mazo1, mazo2;
+  if(isUser) {
+    agregarCartasAlJugador(jugador2, cartasCedidas.cartas);
+    mazo2 = jugador2.cartas;
+    quitarCartasDelJugador(jugador1, cartasCedidas.cartas);
+    mazo1 = jugador1.cartas;
+  } else {
+    agregarCartasAlJugador(jugador1, cartasCedidas.cartas);
+    mazo1 = jugador1.cartas;
+    quitarCartasDelJugador(jugador2, cartasCedidas.cartas);
+    mazo2 = jugador2.cartas;
+  }
+  jugadorElem.innerHTML = "";
+  oponente.innerHTML = "";
+
+  mazo1.forEach(carta => {
+    jugadorElem.appendChild(generateCard(carta.valor, carta.palo));
+  });
+  mazo2.forEach(carta => {
+    oponente.appendChild(generateCard(carta.valor, carta.palo));
+  });
+});
+
+function agregarCartasAlJugador(jugador, cartas) {
+  cartas.forEach(carta => jugador.cartas.push(carta));
+}
+
+function quitarCartasDelJugador(jugador, cartas) {
+  for(const carta of cartas) {
+    jugador.cartas = jugador.cartas.filter(c => JSON.stringify(c) !== JSON.stringify(carta));
+  }
+}
 
 function mostrarDescarte(cartaFinal) {
   const carta = generateCard(cartaFinal.valor, cartaFinal.palo, true);
@@ -572,3 +614,9 @@ function changeReaction(isUser, reaccionID) {
     }
   }, 2500);
 }
+
+// Menu lateral
+infoBtn.addEventListener("click", () => {
+  infoTurno.classList.toggle("active");
+  infoResumen.classList.toggle("active");
+})

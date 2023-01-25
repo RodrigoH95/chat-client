@@ -85,7 +85,93 @@ th, td {
 }
 
 .jugadores {
+  position: relative;
   text-align: center;
+}
+
+.info {
+  display: flex;
+  align-items: center;
+  height: 150px;
+}
+
+.info-ventana {
+  position: relative;
+  overflow: hidden;
+}
+
+#info-btn {
+  position: absolute;
+  font-size: 12px;
+  bottom: 0;
+  right: 0;
+  width: 1rem;
+  height: 1rem;
+  z-index: 40;
+  border: 1px solid black;
+  border-radius: 5px 0 0 0;
+  background-color: white;
+  padding: 0.1rem;
+  opacity: 0.3;
+  transition: opacity 0.2s ease-in;
+}
+
+#info-btn:hover, #info-btn:focus {
+  opacity: 1;
+}
+
+.info-btn:hover {
+  filter: brightness(120%);
+  cursor: pointer;
+}
+
+.info-turno {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  transition: left 0.2s ease;
+}
+
+p {
+  line-height: 1;
+  margin: 0;
+}
+
+.info-turno.active {
+  left: -100%;
+}
+
+.info-resumen {
+  position: absolute;
+  font-family: monospace;
+  font-weight: 700;
+  font-size: 12px;
+  text-align: left;
+  height: 100%;
+  overflow: auto;
+  right: -100%;
+  transition: right 0.2s ease;
+}
+
+.info-resumen.active {
+  right: 0;
+}
+
+.info-ventana {
+  background-color:rgba(216, 194, 142, 0.677);
+  display: flex;
+  flex-shrink: 0;
+  border: 1px solid black;
+  align-items: center;
+  width: 8em;
+  height: 100%;
+}
+
+.info-ventana > * {
+  width: 100%;
 }
 
 .player-container {
