@@ -33,6 +33,8 @@ if(DEBUG) {
 }
 const socket = io(url);
 
+const bell = new Audio('./assets/sound/bell.mp3');
+bell.load();
 console.log("Preloading images...");
 const images = {}
 const palos = ["basto", "copas", "oro", "espadas", "comodin"];
@@ -256,6 +258,8 @@ socket.on("nuevo-turno", bool => {
 
 function userTurn() {
   jugador.turno = true;
+  bell.currentTime = 0;
+  bell.play();
   jugador.tomoCarta = JSON.parse(sessionStorage.getItem("tomoCarta")) || false;
   botonCortar.disabled = true;
   jugador.descartoCarta = false;

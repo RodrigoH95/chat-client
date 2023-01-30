@@ -116,15 +116,18 @@ function showGameRequest({ name, isSender }) {
     console.log("Ya hay una petición en espera");
     return;
   }
+
   const box = document.createElement("div");
   box.classList.add("info-message");
   box.id = "game-request";
+
   const message = document.createElement("div");
   message.classList.add("game-request-message");
-  // Falta texto del mensaje
+
   const content = document.createElement("div");
   content.classList.add("game-request-content");
   content.id = "game-request-content";
+
   if(isSender) {
     message.innerText = `Invitaste a ${name} a jugar una partida de chinchon`;
     content.innerHTML = `<span>Esperando respuesta</span><span class="dots"></span>`;
@@ -136,7 +139,7 @@ function showGameRequest({ name, isSender }) {
     botonRechazar.onclick = () => socket.emit("game-rejected");
     content.appendChild(botonAceptar);
     content.appendChild(botonRechazar);
-      //Si la partida no se acepta en 8 segundos vence la petición
+    //Si la partida no se acepta en x segundos vence la petición
     setTimeout(() => {
       socket.emit("game-request-expired");
     }, 15000);
@@ -328,6 +331,7 @@ function displayMessage(message, socket = null) {
 chatBox.addEventListener("submit", (e) => {
   e.preventDefault();
   if (chatInput.value === "") return;
+  // Evalua si es un comando que inicia con !
   if (chatInput.value.match(/^!\w*/)) {
     const comando = chatInput.value.split(" ")[0].substring(1).toLowerCase();
     evaluarComando(comando);
