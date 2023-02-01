@@ -349,6 +349,7 @@ function formatName(name) {
 }
 
 function generateCard(valor, palo, hidden = false) {
+  console.log("Generando", valor, " de ", palo);
   const card = document.createElement("div");
   card.classList.add("carta");
   card.draggable = "true";
